@@ -225,8 +225,16 @@ function bindControls() {
     solaris.appliances = data.appliances;
     solaris.events = data.events;
     $("#appliance-name").value = "";
+    renderBillUsageOverview();
     renderAppliances();
     renderEvents();
+  });
+
+  $("#generate-bill-overview")?.addEventListener("click", async () => {
+    openFloatingChat();
+    const message = "Generate my electricity bill overview and tell me which appliances I should limit";
+    addChatMessage("user", message);
+    await sendAgentMessage(message);
   });
 }
 
@@ -340,6 +348,7 @@ function renderAll() {
   renderSuggestions();
   renderAgentInsights();
   renderAgentMissionControl();
+  renderBillUsageOverview();
   renderAppliances();
   renderCleaner();
   renderTickets();
@@ -1377,10 +1386,72 @@ function renderAppliances() {
       const data = await apiDelete(`/api/appliances/${encodeURIComponent(button.dataset.removeAppliance)}`);
       solaris.appliances = data.appliances;
       solaris.events = data.events;
+      renderBillUsageOverview();
       renderAppliances();
       renderEvents();
     });
   });
+}
+
+function renderBillUsageOverview() {
+  const amount = $("#bill-estimated-amount");
+  if (!amount) return;
+  const overview = buildBillUsageOverview();
+  $("#bill-month-label").textContent = overview.monthLabel;
+  amount.textContent = `Rs ${overview.projectedPayable}`;
+  $("#bill-grid-import").textContent = `${overview.projectedGridImportKwh.toFixed(0)} kWh`;
+  $("#bill-top-appliance").textContent = overview.topAppliance ? overview.topAppliance.name : "--";
+  $("#bill-import-cost").textContent = `Rs ${overview.importCost}`;
+  $("#bill-export-credit").textContent = `-Rs ${overview.exportCredit}`;
+  $("#bill-fixed-charges").textContent = `Rs ${overview.fixedCharges}`;
+  $("#bill-control-advice").textContent = overview.advice;
+  $("#bill-appliance-impact-list").innerHTML = overview.appliances
+    .map(
+      (item) => `
+        <article class="appliance-impact">
+          <div>
+            <strong>${item.name}</strong>
+            <span>${item.kwh.toFixed(1)} kWh today &middot; Rs ${item.cost}/day &middot; ${item.share}% of tracked cost</span>
+          </div>
+          <small>${item.action}</small>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function buildBillUsageOverview() {
+  const appliances = [...(solaris.appliances || [])].sort((a, b) => (b.cost || 0) - (a.cost || 0));
+  const tariff = Number(solaris.site?.tariffPerKwh || 0);
+  const exportRate = Number(solaris.site?.exportRatePerKwh || 0);
+  const fixedCharges = Number(solaris.bill?.fixedCharges || 0);
+  const days = 30;
+  const projectedGridImportKwh = Number((Number(solaris.metrics?.nightUsage || 0) * days).toFixed(1));
+  const importCost = Math.round(projectedGridImportKwh * tariff);
+  const exportCredit = Math.round(Number(solaris.metrics?.exported || 0) * days * exportRate);
+  const projectedPayable = Math.max(0, importCost + fixedCharges - exportCredit);
+  const totalCost = appliances.reduce((sum, item) => sum + Number(item.cost || 0), 0) || 1;
+  const ranked = appliances.slice(0, 5).map((item, index) => ({
+    ...item,
+    share: Math.round((Number(item.cost || 0) / totalCost) * 100),
+    action: applianceLimitAdvice(item, index),
+  }));
+  const topAppliance = ranked[0] || null;
+  const monthLabel = solaris.bill?.currentCycle?.month || solaris.bill?.month || "Current cycle";
+  const advice = topAppliance
+    ? `${topAppliance.name} is the biggest bill driver. Limit long runtime, shift flexible use to 12 PM - 3 PM, and avoid night operation when possible.`
+    : "Add appliances to see which device is increasing the bill.";
+  return { monthLabel, projectedPayable, projectedGridImportKwh, importCost, exportCredit, fixedCharges, topAppliance, appliances: ranked, advice };
+}
+
+function applianceLimitAdvice(item, index) {
+  const type = String(item.type || item.name || "").toLowerCase();
+  if (type.includes("ac")) return "Limit: raise setpoint to 25-26 C, use timer, avoid long night runtime.";
+  if (type.includes("ev")) return "Shift: charge mainly between 12 PM - 3 PM when solar surplus is highest.";
+  if (type.includes("geyser")) return "Limit: run once in daylight; avoid repeated night heating.";
+  if (type.includes("pump") || type.includes("washing") || type.includes("dishwasher")) return "Shift: schedule during solar hours instead of evening grid import.";
+  if (type.includes("fridge")) return "Monitor: do not switch off; check door seal and temperature setting.";
+  return index === 0 ? "Limit or shift this load where practical." : "Watch usage trend and shift flexible use to solar hours.";
 }
 
 function renderTickets() {

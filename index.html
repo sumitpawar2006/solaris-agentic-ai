@@ -256,6 +256,7 @@
             <div class="quick-prompts">
               <button data-prompt="Compare my solar with similar homes">Peer benchmark</button>
               <button data-prompt="Explain my solar bill">Bill explainer</button>
+              <button data-prompt="Generate my electricity bill overview and tell me which appliances I should limit">Bill usage control</button>
               <button data-prompt="Optimize my solar surplus">Surplus automation</button>
               <button data-prompt="Calculate cleaning ROI">Cleaning ROI</button>
               <button data-prompt="Diagnose underperformance">Underperformance diagnosis</button>
@@ -279,44 +280,78 @@
       </section>
 
       <section class="section" id="appliances">
-        <div class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">Hybrid tracking</p>
-              <h2>NILM + Smart Plug Appliance Tracker</h2>
+        <div class="dashboard-grid appliance-dashboard-grid">
+          <article class="panel bill-generation-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Bill generation</p>
+                <h2>Electricity Bill & Usage Control</h2>
+              </div>
+              <span class="pill" id="bill-month-label">Current cycle</span>
             </div>
-            <span class="pill" id="appliance-count">7 devices</span>
-          </div>
-          <form class="appliance-form" id="appliance-form">
-            <label class="field">
-              <span>Appliance Name</span>
-              <input id="appliance-name" type="text" placeholder="Dishwasher" required />
-            </label>
-            <label class="field">
-              <span>Type</span>
-              <select id="appliance-type">
-                <option>AC</option>
-                <option>Fridge</option>
-                <option>Geyser</option>
-                <option>Pump</option>
-                <option>Washing Machine</option>
-                <option>Dishwasher</option>
-                <option>EV Charger</option>
-                <option>Kitchen</option>
-                <option>Other</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Tracking</span>
-              <select id="appliance-source">
-                <option>NILM</option>
-                <option>Smart plug</option>
-                <option>Both</option>
-              </select>
-            </label>
-            <button class="primary" type="submit">Add Appliance</button>
-          </form>
-          <div class="appliance-list" id="appliance-list"></div>
+            <div class="bill-summary-grid">
+              <div>
+                <span>Projected payable</span>
+                <strong id="bill-estimated-amount">₹0</strong>
+              </div>
+              <div>
+                <span>Grid import estimate</span>
+                <strong id="bill-grid-import">0 kWh</strong>
+              </div>
+              <div>
+                <span>Top bill driver</span>
+                <strong id="bill-top-appliance">--</strong>
+              </div>
+            </div>
+            <div class="bill-breakdown">
+              <div class="bill-breakdown-row"><span>Import cost</span><strong id="bill-import-cost">₹0</strong></div>
+              <div class="bill-breakdown-row"><span>Solar export credit</span><strong id="bill-export-credit">-₹0</strong></div>
+              <div class="bill-breakdown-row"><span>Fixed charges</span><strong id="bill-fixed-charges">₹0</strong></div>
+            </div>
+            <div class="appliance-impact-list" id="bill-appliance-impact-list"></div>
+            <p class="note" id="bill-control-advice">Solaris will highlight the appliances increasing the bill and suggest what to limit or shift into solar hours.</p>
+            <button class="primary full" id="generate-bill-overview" type="button">Generate Bill Overview</button>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Hybrid tracking</p>
+                <h2>NILM + Smart Plug Appliance Tracker</h2>
+              </div>
+              <span class="pill" id="appliance-count">7 devices</span>
+            </div>
+            <form class="appliance-form" id="appliance-form">
+              <label class="field">
+                <span>Appliance Name</span>
+                <input id="appliance-name" type="text" placeholder="Dishwasher" required />
+              </label>
+              <label class="field">
+                <span>Type</span>
+                <select id="appliance-type">
+                  <option>AC</option>
+                  <option>Fridge</option>
+                  <option>Geyser</option>
+                  <option>Pump</option>
+                  <option>Washing Machine</option>
+                  <option>Dishwasher</option>
+                  <option>EV Charger</option>
+                  <option>Kitchen</option>
+                  <option>Other</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Tracking</span>
+                <select id="appliance-source">
+                  <option>NILM</option>
+                  <option>Smart plug</option>
+                  <option>Both</option>
+                </select>
+              </label>
+              <button class="primary" type="submit">Add Appliance</button>
+            </form>
+            <div class="appliance-list" id="appliance-list"></div>
+          </article>
         </div>
       </section>
 
@@ -463,6 +498,7 @@
           <button data-agent-command="When should I run my washing machine?">Best usage time</button>
           <button data-agent-command="Should I clean my panels?">Cleaning advice</button>
           <button data-agent-command="Explain my solar bill">Bill explainer</button>
+          <button data-agent-command="Generate my electricity bill overview and tell me which appliances I should limit">Bill usage control</button>
           <button data-agent-command="Optimize my solar surplus">Surplus automation</button>
           <button data-agent-command="Calculate cleaning ROI">Cleaning ROI</button>
           <button data-agent-command="Diagnose underperformance">Underperformance diagnosis</button>

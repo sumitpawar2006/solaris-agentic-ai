@@ -2127,6 +2127,92 @@ body.modal-open {
   background: #fbfcf8;
 }
 
+.appliance-dashboard-grid {
+  grid-template-columns: minmax(360px, 0.85fr) minmax(480px, 1.15fr);
+  align-items: start;
+}
+
+.bill-generation-panel {
+  position: sticky;
+  top: 96px;
+}
+
+.bill-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.bill-summary-grid div,
+.bill-breakdown,
+.appliance-impact {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcf8;
+}
+
+.bill-summary-grid div {
+  min-height: 86px;
+  padding: 12px;
+}
+
+.bill-summary-grid span,
+.bill-breakdown-row span,
+.appliance-impact span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.bill-summary-grid strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+.bill-breakdown {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.bill-breakdown-row,
+.appliance-impact {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.bill-breakdown-row strong {
+  white-space: nowrap;
+}
+
+.appliance-impact-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.appliance-impact {
+  padding: 12px;
+}
+
+.appliance-impact strong,
+.appliance-impact span {
+  display: block;
+}
+
+.appliance-impact small {
+  max-width: 220px;
+  color: var(--green);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .appliance-form .field {
   margin: 0;
 }
@@ -2381,6 +2467,7 @@ body.modal-open {
 
   .topbar,
   .dashboard-grid,
+  .appliance-dashboard-grid,
   .chat-layout,
   .ai-agents-layout,
   .agent-card-grid,
@@ -2428,11 +2515,16 @@ body.modal-open {
   .chart-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .bill-generation-panel {
+    position: static;
+  }
 }
 
 @media (max-width: 560px) {
   .metric-grid,
   .chart-summary,
+  .bill-summary-grid,
   .judge-demo-grid,
   .approval-replay-grid,
   .orchestrator-agent-grid,
@@ -2442,6 +2534,16 @@ body.modal-open {
   .control-row,
   .appliance-form {
     grid-template-columns: 1fr;
+  }
+
+  .bill-breakdown-row,
+  .appliance-impact {
+    align-items: flex-start;
+    display: grid;
+  }
+
+  .appliance-impact small {
+    max-width: none;
   }
 
   .nav {

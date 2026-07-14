@@ -1607,6 +1607,42 @@ function buildBillExplainerInsight() {
   };
 }
 
+function buildBillUsageControlOverview() {
+  const days = 30;
+  const projectedGridImportKwh = Number((Number(state.metrics.nightUsage || 0) * days).toFixed(1));
+  const importCost = Math.round(projectedGridImportKwh * Number(state.site.tariffPerKwh || 0));
+  const exportCredit = Math.round(Number(state.metrics.exported || 0) * days * Number(state.site.exportRatePerKwh || 0));
+  const fixedCharges = Number(state.bill.fixedCharges || 0);
+  const projectedPayable = Math.max(0, importCost + fixedCharges - exportCredit);
+  const rankedAppliances = [...(state.appliances || [])]
+    .sort((a, b) => Number(b.cost || 0) - Number(a.cost || 0))
+    .slice(0, 5);
+  const totalTrackedCost = rankedAppliances.reduce((sum, item) => sum + Number(item.cost || 0), 0) || 1;
+  return {
+    month: state.bill.currentCycle?.month || state.bill.month || "Current cycle",
+    projectedPayable,
+    projectedGridImportKwh,
+    importCost,
+    exportCredit,
+    fixedCharges,
+    appliances: rankedAppliances.map((item, index) => ({
+      ...item,
+      share: Math.round((Number(item.cost || 0) / totalTrackedCost) * 100),
+      action: applianceLimitAdvice(item, index),
+    })),
+  };
+}
+
+function applianceLimitAdvice(item, index) {
+  const type = String(item.type || item.name || "").toLowerCase();
+  if (type.includes("ac")) return "Limit night runtime, use timer, and keep setpoint near 25-26 C.";
+  if (type.includes("ev")) return "Charge between 12 PM - 3 PM when solar surplus is strongest.";
+  if (type.includes("geyser")) return "Heat water during daylight and avoid repeated night heating.";
+  if (type.includes("pump") || type.includes("washing") || type.includes("dishwasher")) return "Schedule this flexible load in solar hours instead of evening.";
+  if (type.includes("fridge")) return "Do not switch off; check door seal and temperature setting.";
+  return index === 0 ? "Limit runtime or shift this load to solar hours where practical." : "Monitor trend and shift flexible usage to solar hours.";
+}
+
 function getCompletedBillComparison() {
   const completedBills = Array.isArray(state.bill.completedBills) ? state.bill.completedBills : [];
   const fallbackLatest = {
@@ -3063,6 +3099,22 @@ async function handleAgentMessage(message, user, session) {
 
   if (includesAny(text, ["bill explainer", "explain my bill", "solar bill", "why bill", "bill explanation"])) {
     return insightAgentReply("bill-explainer", state.agentInsights.bill, true);
+  }
+
+  if (includesAny(text, ["bill generation", "generate bill", "electricity bill overview", "bill overview", "appliance bill", "which appliances should i limit", "which appliances i should limit", "limit appliance", "reduce electricity bill"])) {
+    const overview = buildBillUsageControlOverview();
+    const top = overview.appliances[0];
+    return agentReply(
+      "bill-usage-control",
+      `${overview.month} projected payable bill is about Rs ${overview.projectedPayable}. ${top ? `${top.name} is the biggest tracked bill driver today.` : "Add appliances to see device-level bill drivers."}`,
+      [
+        `Projected grid import: ${overview.projectedGridImportKwh.toFixed(0)} kWh, about Rs ${overview.importCost}.`,
+        `Solar export credit estimate: Rs ${overview.exportCredit}; fixed charges: Rs ${overview.fixedCharges}.`,
+        ...overview.appliances.map((item) => `${item.name}: ${item.kwh.toFixed(1)} kWh today, Rs ${item.cost}/day, ${item.share}% of tracked cost. ${item.action}`),
+        "Main rule: do not stop essential appliances; limit long runtime and shift flexible loads to 12 PM - 3 PM solar surplus.",
+      ],
+      true,
+    );
   }
 
   if (includesAny(text, ["peer benchmark", "benchmark my solar", "compare my solar", "compare with similar homes", "compare solar", "community benchmark", "solar ranking", "solar peer"])) {
