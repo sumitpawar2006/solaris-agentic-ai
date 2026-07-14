@@ -3,6 +3,7 @@ const { AsyncLocalStorage } = require("node:async_hooks");
 const fs = require("node:fs");
 const path = require("node:path");
 const OpenAI = require("openai");
+const QRCode = require("qrcode");
 const { isEmailConfigured, sendSolarisEmail } = require("./emailAdapter");
 const { isWhatsAppConfigured, normalizeWhatsAppNumber, sendSolarisWhatsApp, sendSolarisWhatsAppContent, sendSolarisWhatsAppTemplate, whatsappProvider } = require("./whatsappAdapter");
 const { isGoogleCalendarConfigured, createSolarisCalendarEvent } = require("./calendarAdapter");
@@ -479,7 +480,7 @@ const server = http.createServer(async (req, res) => {
       const method = String(body.method || "").trim();
       const invoiceNumber = String(body.invoiceNumber || "").trim();
       const amount = Number(body.amount || 0);
-      const result = buildPaymentLink({ method, invoiceNumber, amount });
+      const result = await buildPaymentLink({ method, invoiceNumber, amount });
       if (result.error) return sendJson(res, result, 409);
       addEvent(`Payment link created for ${invoiceNumber} using ${method}.`);
       sendJson(res, { ...result, events: state.events });
@@ -1655,7 +1656,7 @@ function applianceLimitAdvice(item, index) {
   return index === 0 ? "Limit runtime or shift this load to solar hours where practical." : "Monitor trend and shift flexible usage to solar hours.";
 }
 
-function buildPaymentLink({ method, invoiceNumber, amount }) {
+async function buildPaymentLink({ method, invoiceNumber, amount }) {
   if (!method || !invoiceNumber || !Number.isFinite(amount) || amount <= 0) {
     return { error: "Payment method, invoice number, and amount are required." };
   }
@@ -1670,19 +1671,23 @@ function buildPaymentLink({ method, invoiceNumber, amount }) {
       cu: "INR",
       tn: invoiceNumber,
     });
+    const paymentUrl = `upi://pay?${params.toString()}`;
     return {
       configured: true,
       provider: "UPI",
-      paymentUrl: `upi://pay?${params.toString()}`,
+      paymentUrl,
+      qrDataUrl: await QRCode.toDataURL(paymentUrl, { margin: 1, width: 220 }),
       message: "UPI payment link generated. Open it on a device with a UPI app installed.",
     };
   }
   if (paymentUrl) {
     const separator = paymentUrl.includes("?") ? "&" : "?";
+    const gatewayUrl = `${paymentUrl}${separator}invoice=${encodeURIComponent(invoiceNumber)}&amount=${encodeURIComponent(amount)}&method=${encodeURIComponent(method)}`;
     return {
       configured: true,
       provider: method,
-      paymentUrl: `${paymentUrl}${separator}invoice=${encodeURIComponent(invoiceNumber)}&amount=${encodeURIComponent(amount)}&method=${encodeURIComponent(method)}`,
+      paymentUrl: gatewayUrl,
+      qrDataUrl: await QRCode.toDataURL(gatewayUrl, { margin: 1, width: 220 }),
       message: "Payment gateway link generated. Payment confirmation must come from the gateway/webhook.",
     };
   }

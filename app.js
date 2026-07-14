@@ -23,6 +23,8 @@ const solaris = {
   generatedBill: null,
   selectedPaymentMethod: "",
   billPaid: false,
+  paymentQrDataUrl: "",
+  paymentUrl: "",
   preferences: {},
   events: [],
   authenticated: false,
@@ -1469,6 +1471,8 @@ function generateBill() {
   };
   solaris.selectedPaymentMethod = "";
   solaris.billPaid = false;
+  solaris.paymentQrDataUrl = "";
+  solaris.paymentUrl = "";
   renderGeneratedBill();
 }
 
@@ -1513,11 +1517,14 @@ function renderGeneratedBill() {
     : solaris.selectedPaymentMethod
       ? `${solaris.selectedPaymentMethod} selected. Click Open Payment Link. Solaris will not mark paid until payment confirmation is received.`
       : "Select a payment option to continue.";
+  renderPaymentQr();
 }
 
 function selectPaymentMethod(method) {
   if (!solaris.generatedBill || solaris.billPaid) return;
   solaris.selectedPaymentMethod = method;
+  solaris.paymentQrDataUrl = "";
+  solaris.paymentUrl = "";
   renderGeneratedBill();
 }
 
@@ -1532,12 +1539,28 @@ async function payGeneratedBill() {
       method: solaris.selectedPaymentMethod,
     });
     solaris.events = data.events || solaris.events;
+    solaris.paymentQrDataUrl = data.qrDataUrl || "";
+    solaris.paymentUrl = data.paymentUrl || "";
     note.textContent = data.message || "Payment link opened. Waiting for payment confirmation.";
+    renderPaymentQr();
     window.open(data.paymentUrl, "_blank", "noopener");
     renderEvents();
   } catch (error) {
     note.textContent = error.message;
+    solaris.paymentQrDataUrl = "";
+    solaris.paymentUrl = "";
+    renderPaymentQr();
   }
+}
+
+function renderPaymentQr() {
+  const card = $("#payment-qr-card");
+  if (!card) return;
+  const hasQr = Boolean(solaris.paymentQrDataUrl && solaris.paymentUrl);
+  card.hidden = !hasQr;
+  if (!hasQr) return;
+  $("#payment-qr-image").src = solaris.paymentQrDataUrl;
+  $("#payment-link").href = solaris.paymentUrl;
 }
 
 function formatDisplayDate(value) {

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "nodemailer": "^9.0.3",
-    "openai": "^6.46.0"
+    "openai": "^6.46.0",
+    "qrcode": "^1.5.4"
   }
 }

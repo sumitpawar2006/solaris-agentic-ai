@@ -2321,6 +2321,27 @@ body.modal-open {
   color: var(--green);
 }
 
+.payment-qr-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: white;
+  text-align: center;
+}
+
+.payment-qr-card img {
+  display: block;
+  width: 180px;
+  height: 180px;
+  margin: 10px auto;
+  image-rendering: crisp-edges;
+}
+
+.payment-qr-card a {
+  color: var(--blue);
+  font-weight: 900;
+}
+
 .appliance-form .field {
   margin: 0;
 }
