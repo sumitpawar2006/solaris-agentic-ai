@@ -103,6 +103,7 @@
         <button data-section="ai-agents" title="AI Agents"><span>AI Agents</span></button>
         <button class="active" data-section="overview" title="Overview">⌂ <span>Overview</span></button>
         <button data-section="agent" title="Agent">✦ <span>Agent</span></button>
+        <button data-section="bill" title="Bill">₹ <span>Bill</span></button>
         <button data-section="appliances" title="Appliances">▦ <span>Appliances</span></button>
         <button data-section="cleaning" title="Cleaning">◌ <span>Cleaning</span></button>
         <button data-section="maintenance" title="Maintenance">⚙ <span>Maintenance</span></button>
@@ -279,8 +280,8 @@
         </div>
       </section>
 
-      <section class="section" id="appliances">
-        <div class="dashboard-grid appliance-dashboard-grid">
+      <section class="section" id="bill">
+        <div class="dashboard-grid bill-dashboard-grid">
           <article class="panel bill-generation-panel">
             <div class="panel-head">
               <div>
@@ -292,7 +293,7 @@
             <div class="bill-summary-grid">
               <div>
                 <span>Projected payable</span>
-                <strong id="bill-estimated-amount">₹0</strong>
+                <strong id="bill-estimated-amount">Rs 0</strong>
               </div>
               <div>
                 <span>Grid import estimate</span>
@@ -304,54 +305,102 @@
               </div>
             </div>
             <div class="bill-breakdown">
-              <div class="bill-breakdown-row"><span>Import cost</span><strong id="bill-import-cost">₹0</strong></div>
-              <div class="bill-breakdown-row"><span>Solar export credit</span><strong id="bill-export-credit">-₹0</strong></div>
-              <div class="bill-breakdown-row"><span>Fixed charges</span><strong id="bill-fixed-charges">₹0</strong></div>
+              <div class="bill-breakdown-row"><span>Import cost</span><strong id="bill-import-cost">Rs 0</strong></div>
+              <div class="bill-breakdown-row"><span>Solar export credit</span><strong id="bill-export-credit">-Rs 0</strong></div>
+              <div class="bill-breakdown-row"><span>Fixed charges</span><strong id="bill-fixed-charges">Rs 0</strong></div>
             </div>
             <div class="appliance-impact-list" id="bill-appliance-impact-list"></div>
             <p class="note" id="bill-control-advice">Solaris will highlight the appliances increasing the bill and suggest what to limit or shift into solar hours.</p>
-            <button class="primary full" id="generate-bill-overview" type="button">Generate Bill Overview</button>
+            <button class="primary full" id="generate-bill-overview" type="button">Generate Bill</button>
           </article>
 
-          <article class="panel">
+          <article class="panel generated-bill-panel">
             <div class="panel-head">
               <div>
-                <p class="eyebrow">Hybrid tracking</p>
-                <h2>NILM + Smart Plug Appliance Tracker</h2>
+                <p class="eyebrow">Customer bill</p>
+                <h2>Generated Bill</h2>
               </div>
-              <span class="pill" id="appliance-count">7 devices</span>
+              <span class="pill" id="bill-payment-status">Not generated</span>
             </div>
-            <form class="appliance-form" id="appliance-form">
-              <label class="field">
-                <span>Appliance Name</span>
-                <input id="appliance-name" type="text" placeholder="Dishwasher" required />
-              </label>
-              <label class="field">
-                <span>Type</span>
-                <select id="appliance-type">
-                  <option>AC</option>
-                  <option>Fridge</option>
-                  <option>Geyser</option>
-                  <option>Pump</option>
-                  <option>Washing Machine</option>
-                  <option>Dishwasher</option>
-                  <option>EV Charger</option>
-                  <option>Kitchen</option>
-                  <option>Other</option>
-                </select>
-              </label>
-              <label class="field">
-                <span>Tracking</span>
-                <select id="appliance-source">
-                  <option>NILM</option>
-                  <option>Smart plug</option>
-                  <option>Both</option>
-                </select>
-              </label>
-              <button class="primary" type="submit">Add Appliance</button>
-            </form>
-            <div class="appliance-list" id="appliance-list"></div>
+            <div class="generated-bill-empty" id="generated-bill-empty">
+              <strong>No bill generated yet.</strong>
+              <p>Click Generate Bill to create a bill with import charges, solar export credit, fixed charges, and appliance usage guidance.</p>
+            </div>
+            <div class="generated-bill" id="generated-bill" hidden>
+              <div class="bill-invoice-head">
+                <div>
+                  <span class="label">Invoice</span>
+                  <strong id="bill-invoice-number">SOL-BILL-0000</strong>
+                </div>
+                <div>
+                  <span class="label">Due date</span>
+                  <strong id="bill-due-date">--</strong>
+                </div>
+              </div>
+              <div class="bill-customer-box">
+                <div><span>Customer</span><strong id="bill-customer-name">--</strong></div>
+                <div><span>Email</span><strong id="bill-customer-email">--</strong></div>
+                <div><span>Address</span><strong id="bill-customer-address">--</strong></div>
+              </div>
+              <div class="bill-line-items" id="bill-line-items"></div>
+              <div class="bill-total-row">
+                <span>Total payable</span>
+                <strong id="bill-total-payable">Rs 0</strong>
+              </div>
+              <div class="payment-options">
+                <span class="label">Payment option</span>
+                <div class="payment-option-grid">
+                  <button data-payment-method="UPI" type="button">UPI</button>
+                  <button data-payment-method="Card" type="button">Card</button>
+                  <button data-payment-method="Net Banking" type="button">Net Banking</button>
+                </div>
+                <button class="primary full" id="pay-bill" type="button" disabled>Pay Bill</button>
+                <p class="note" id="payment-note">Select a payment option to continue.</p>
+              </div>
+            </div>
           </article>
+        </div>
+      </section>
+
+      <section class="section" id="appliances">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Hybrid tracking</p>
+              <h2>NILM + Smart Plug Appliance Tracker</h2>
+            </div>
+            <span class="pill" id="appliance-count">7 devices</span>
+          </div>
+          <form class="appliance-form" id="appliance-form">
+            <label class="field">
+              <span>Appliance Name</span>
+              <input id="appliance-name" type="text" placeholder="Dishwasher" required />
+            </label>
+            <label class="field">
+              <span>Type</span>
+              <select id="appliance-type">
+                <option>AC</option>
+                <option>Fridge</option>
+                <option>Geyser</option>
+                <option>Pump</option>
+                <option>Washing Machine</option>
+                <option>Dishwasher</option>
+                <option>EV Charger</option>
+                <option>Kitchen</option>
+                <option>Other</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Tracking</span>
+              <select id="appliance-source">
+                <option>NILM</option>
+                <option>Smart plug</option>
+                <option>Both</option>
+              </select>
+            </label>
+            <button class="primary" type="submit">Add Appliance</button>
+          </form>
+          <div class="appliance-list" id="appliance-list"></div>
         </div>
       </section>
 

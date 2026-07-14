@@ -1,4 +1,4 @@
-const apiBase = `${window.location.protocol}//${window.location.hostname}:8787`;
+const apiBase = window.location.origin;
 
 const solaris = {
   chartMode: "day",
@@ -19,6 +19,10 @@ const solaris = {
   missionControlRevealed: false,
   missionControlAnimating: false,
   selectedApprovalId: "",
+  currentUser: null,
+  generatedBill: null,
+  selectedPaymentMethod: "",
+  billPaid: false,
   preferences: {},
   events: [],
   authenticated: false,
@@ -230,12 +234,11 @@ function bindControls() {
     renderEvents();
   });
 
-  $("#generate-bill-overview")?.addEventListener("click", async () => {
-    openFloatingChat();
-    const message = "Generate my electricity bill overview and tell me which appliances I should limit";
-    addChatMessage("user", message);
-    await sendAgentMessage(message);
+  $("#generate-bill-overview")?.addEventListener("click", generateBill);
+  $$("[data-payment-method]").forEach((button) => {
+    button.addEventListener("click", () => selectPaymentMethod(button.dataset.paymentMethod));
   });
+  $("#pay-bill")?.addEventListener("click", payGeneratedBill);
 }
 
 function bindAuth() {
@@ -314,6 +317,7 @@ async function checkAuth() {
 function showApp(user) {
   solaris.authenticated = true;
   solaris.chatAuthenticated = true;
+  solaris.currentUser = user || solaris.currentUser;
   document.body.classList.remove("locked");
   $("#user-chip").textContent = `Welcome ${user?.name || "Solaris User"}`;
 }
@@ -349,6 +353,7 @@ function renderAll() {
   renderAgentInsights();
   renderAgentMissionControl();
   renderBillUsageOverview();
+  renderGeneratedBill();
   renderAppliances();
   renderCleaner();
   renderTickets();
@@ -1442,6 +1447,94 @@ function buildBillUsageOverview() {
     ? `${topAppliance.name} is the biggest bill driver. Limit long runtime, shift flexible use to 12 PM - 3 PM, and avoid night operation when possible.`
     : "Add appliances to see which device is increasing the bill.";
   return { monthLabel, projectedPayable, projectedGridImportKwh, importCost, exportCredit, fixedCharges, topAppliance, appliances: ranked, advice };
+}
+
+function generateBill() {
+  const overview = buildBillUsageOverview();
+  const created = new Date();
+  const due = new Date(created);
+  due.setDate(due.getDate() + 10);
+  solaris.generatedBill = {
+    invoiceNumber: `SOL-BILL-${created.getFullYear()}${String(created.getMonth() + 1).padStart(2, "0")}-${String(created.getTime()).slice(-4)}`,
+    month: overview.monthLabel,
+    createdAt: created.toISOString(),
+    dueDate: due.toISOString(),
+    projectedPayable: overview.projectedPayable,
+    projectedGridImportKwh: overview.projectedGridImportKwh,
+    importCost: overview.importCost,
+    exportCredit: overview.exportCredit,
+    fixedCharges: overview.fixedCharges,
+    topAppliance: overview.topAppliance,
+    appliances: overview.appliances,
+  };
+  solaris.selectedPaymentMethod = "";
+  solaris.billPaid = false;
+  renderGeneratedBill();
+}
+
+function renderGeneratedBill() {
+  const billBox = $("#generated-bill");
+  if (!billBox) return;
+  const empty = $("#generated-bill-empty");
+  const status = $("#bill-payment-status");
+  const bill = solaris.generatedBill;
+  if (!bill) {
+    billBox.hidden = true;
+    empty.hidden = false;
+    status.textContent = "Not generated";
+    status.className = "pill";
+    return;
+  }
+
+  billBox.hidden = false;
+  empty.hidden = true;
+  status.textContent = solaris.billPaid ? "Paid" : "Payment pending";
+  status.className = `pill ${solaris.billPaid ? "good" : "warning"}`;
+  $("#bill-invoice-number").textContent = bill.invoiceNumber;
+  $("#bill-due-date").textContent = formatDisplayDate(bill.dueDate);
+  $("#bill-customer-name").textContent = solaris.currentUser?.name || "Solaris Customer";
+  $("#bill-customer-email").textContent = solaris.currentUser?.email || "customer@solaris.local";
+  $("#bill-customer-address").textContent = solaris.currentUser?.address || "Demo Solar Site";
+  $("#bill-total-payable").textContent = `Rs ${bill.projectedPayable}`;
+  $("#bill-line-items").innerHTML = [
+    { label: `Grid import estimate (${bill.projectedGridImportKwh.toFixed(0)} kWh)`, amount: bill.importCost },
+    { label: "Fixed charges", amount: bill.fixedCharges },
+    { label: "Solar export credit", amount: -bill.exportCredit },
+  ]
+    .map((item) => `<div class="bill-line-item"><span>${item.label}</span><strong>${item.amount < 0 ? "-" : ""}Rs ${Math.abs(item.amount)}</strong></div>`)
+    .join("");
+  $$("[data-payment-method]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.paymentMethod === solaris.selectedPaymentMethod);
+  });
+  $("#pay-bill").disabled = !solaris.selectedPaymentMethod || solaris.billPaid;
+  $("#payment-note").textContent = solaris.billPaid
+    ? `Payment completed using ${solaris.selectedPaymentMethod}.`
+    : solaris.selectedPaymentMethod
+      ? `${solaris.selectedPaymentMethod} selected. Click Pay Bill to complete demo payment.`
+      : "Select a payment option to continue.";
+}
+
+function selectPaymentMethod(method) {
+  if (!solaris.generatedBill || solaris.billPaid) return;
+  solaris.selectedPaymentMethod = method;
+  renderGeneratedBill();
+}
+
+function payGeneratedBill() {
+  if (!solaris.generatedBill || !solaris.selectedPaymentMethod) return;
+  solaris.billPaid = true;
+  solaris.events = [
+    { at: new Date().toISOString(), message: `Bill ${solaris.generatedBill.invoiceNumber} paid using ${solaris.selectedPaymentMethod}.` },
+    ...(solaris.events || []),
+  ];
+  renderGeneratedBill();
+  renderEvents();
+}
+
+function formatDisplayDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--";
+  return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function applianceLimitAdvice(item, index) {
