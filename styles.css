@@ -2858,3 +2858,270 @@ body.modal-open {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* Professional dashboard polish */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --ink: #18212f;
+  --muted: #5f6b7a;
+  --line: #d8dee6;
+  --green: #137a4b;
+  --green-soft: #e8f5ee;
+  --blue: #1f5f99;
+  --amber: #b87503;
+  --red: #b42318;
+  --shadow: 0 10px 26px rgba(24, 33, 47, 0.07);
+  --shadow-strong: 0 18px 44px rgba(24, 33, 47, 0.14);
+}
+
+body {
+  background: #f4f6f8;
+  color: var(--ink);
+}
+
+button,
+input,
+select,
+textarea {
+  border-radius: 6px;
+}
+
+button {
+  min-height: 38px;
+  font-weight: 700;
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+button:hover {
+  border-color: #a5afbc;
+  box-shadow: 0 6px 16px rgba(24, 33, 47, 0.08);
+}
+
+.primary {
+  background: #137a4b;
+  border-color: #137a4b;
+  box-shadow: 0 8px 18px rgba(19, 122, 75, 0.16);
+}
+
+.primary:hover {
+  background: #0f6a41;
+  border-color: #0f6a41;
+}
+
+.sidebar {
+  background: #111827;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 8px 0 28px rgba(17, 24, 39, 0.12);
+}
+
+.brand-mark {
+  border-radius: 8px;
+  background: #f2bd3d;
+  box-shadow: none;
+}
+
+.nav {
+  gap: 5px;
+}
+
+.nav button {
+  border-radius: 6px;
+  min-height: 40px;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.nav button.active {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 3px 0 0 #f2bd3d;
+}
+
+.system-card {
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.app-shell {
+  padding: 24px;
+}
+
+.topbar {
+  border-radius: 8px;
+  background: #ffffff;
+  border-color: #d8dee6;
+  box-shadow: var(--shadow);
+  backdrop-filter: none;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+h2 {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.label,
+.eyebrow,
+.metric span,
+.tracker span {
+  color: #647184;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.status-strip span,
+.pill {
+  border-radius: 999px;
+  background: #f8fafc;
+  border-color: #d8dee6;
+}
+
+.metric,
+.panel,
+.agent-card,
+.agent-approval-card,
+.agent-mission-control,
+.floating-chat-panel,
+.ticket-form,
+.approval-card,
+.suggestion,
+.appliance,
+.ticket,
+.log-entry {
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: var(--shadow);
+}
+
+.panel:not(.chat-panel) {
+  background: #ffffff;
+  border-color: #d8dee6;
+}
+
+.metric {
+  min-height: 116px;
+  padding: 16px;
+}
+
+.metric::before {
+  width: 4px;
+}
+
+.metric::after {
+  display: none;
+}
+
+.metric strong {
+  font-size: 26px;
+  letter-spacing: 0;
+}
+
+.metric:hover,
+.agent-card:hover,
+.agent-approval-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 34px rgba(24, 33, 47, 0.1);
+}
+
+.demo-ribbon {
+  border-radius: 8px;
+  border-color: #d8dee6;
+  background: #172033;
+  box-shadow: var(--shadow);
+}
+
+.demo-ribbon::before {
+  display: none;
+}
+
+.demo-ribbon h2 {
+  font-size: 21px;
+}
+
+.demo-ribbon-flow span {
+  min-height: 48px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.panel-head {
+  border-bottom: 1px solid #eef1f5;
+  margin: -2px -2px 14px;
+  padding-bottom: 12px;
+}
+
+.bill-generation-panel,
+.generated-bill-panel {
+  border-top: 4px solid #137a4b;
+}
+
+.bill-summary-grid div,
+.bill-breakdown,
+.appliance-impact,
+.generated-bill-empty,
+.generated-bill,
+.bill-invoice-head div,
+.bill-customer-box div,
+.bill-line-items,
+.payment-qr-card {
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.bill-summary-grid strong,
+.bill-total-row strong {
+  color: #111827;
+}
+
+.bill-total-row {
+  border-radius: 8px;
+  background: #eef6f1;
+  color: #18212f;
+  border: 1px solid #cfe7d8;
+}
+
+.bill-line-item {
+  background: #ffffff;
+}
+
+.payment-option-grid button.active {
+  background: #e8f5ee;
+  border-color: #137a4b;
+}
+
+.payment-qr-card {
+  border-style: dashed;
+  background: #fbfcfd;
+}
+
+.payment-qr-card.qr-ready {
+  border-style: solid;
+  background: #ffffff;
+}
+
+.chart-summary div,
+.tracker div {
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+canvas {
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.quick-prompts button,
+.chat-command-menu button {
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.landing-copy,
+.login-panel {
+  border-radius: 12px;
+}
