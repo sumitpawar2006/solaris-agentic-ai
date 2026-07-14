@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Solaris Agentic AI Background</title>
+  <desc id="desc">A clean solar-energy background with sunrise, solar panels, data paths, and agentic workflow nodes.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F7FBFF"/>
+      <stop offset="48%" stop-color="#EAF7EF"/>
+      <stop offset="100%" stop-color="#F8FBF8"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFD166"/>
+      <stop offset="55%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#16A36A"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1E62A2"/>
+      <stop offset="100%" stop-color="#0B1220"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#168A52" stop-opacity="0"/>
+      <stop offset="48%" stop-color="#168A52" stop-opacity="0.48"/>
+      <stop offset="100%" stop-color="#1E62A2" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur">
+      <feGaussianBlur stdDeviation="28"/>
+    </filter>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+
+  <g font-family="Inter, Segoe UI, Arial, sans-serif" transform="translate(72 62)">
+    <rect x="0" y="0" width="842" height="74" rx="22" fill="#FFFFFF" opacity="0.82" stroke="#D7E4D7" stroke-width="2"/>
+    <text x="28" y="44" font-size="24" font-weight="800" fill="#0B1220">Agentic workflow:</text>
+    <text x="274" y="44" font-size="22" font-weight="700" fill="#168A52">O</text>
+    <text x="298" y="44" font-size="22" font-weight="600" fill="#5B6472">Observe</text>
+    <text x="406" y="44" font-size="22" font-weight="700" fill="#1E62A2">R</text>
+    <text x="430" y="44" font-size="22" font-weight="600" fill="#5B6472">Reason</text>
+    <text x="532" y="44" font-size="22" font-weight="700" fill="#C98100">A</text>
+    <text x="556" y="44" font-size="22" font-weight="600" fill="#5B6472">Approve/Act</text>
+    <text x="712" y="44" font-size="22" font-weight="700" fill="#168A52">V</text>
+    <text x="736" y="44" font-size="22" font-weight="600" fill="#5B6472">Verify</text>
+  </g>
+
+  <circle cx="1560" cy="176" r="132" fill="url(#sun)" opacity="0.95"/>
+  <circle cx="1560" cy="176" r="220" fill="#FFD166" opacity="0.16" filter="url(#blur)"/>
+  <path d="M1320 175h480M1560-65v480M1390 5l340 340M1730 5l-340 340" stroke="#F59E0B" stroke-width="8" stroke-linecap="round" opacity="0.18"/>
+
+  <path d="M0 760C230 690 360 720 540 665C755 599 940 631 1120 570C1370 485 1570 510 1920 420V1080H0Z" fill="#DFF1E6"/>
+  <path d="M0 845C260 785 430 810 650 760C890 705 1050 720 1255 665C1490 600 1680 590 1920 548V1080H0Z" fill="#CFE8D8"/>
+
+  <g opacity="0.95" transform="translate(190 665) skewX(-18)">
+    <rect x="0" y="0" width="460" height="230" rx="14" fill="url(#panel)"/>
+    <g stroke="#6DCBF4" stroke-width="4" opacity="0.58">
+      <path d="M92 0v230M184 0v230M276 0v230M368 0v230"/>
+      <path d="M0 58h460M0 116h460M0 174h460"/>
+    </g>
+    <rect x="0" y="0" width="460" height="230" rx="14" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.5"/>
+  </g>
+
+  <g opacity="0.84" transform="translate(760 715) skewX(-18)">
+    <rect x="0" y="0" width="360" height="180" rx="12" fill="#183A56"/>
+    <g stroke="#6DCBF4" stroke-width="3" opacity="0.5">
+      <path d="M72 0v180M144 0v180M216 0v180M288 0v180"/>
+      <path d="M0 45h360M0 90h360M0 135h360"/>
+    </g>
+  </g>
+
+  <path d="M220 300C420 210 560 380 730 300S1070 190 1280 300S1600 385 1780 290" fill="none" stroke="url(#glow)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M310 418C520 325 650 502 840 420S1160 296 1390 430S1640 500 1810 405" fill="none" stroke="#1E62A2" stroke-width="5" opacity="0.22" stroke-dasharray="18 22" stroke-linecap="round"/>
+
+  <g font-family="Inter, Segoe UI, Arial, sans-serif">
+    <g transform="translate(330 284)">
+      <circle r="28" fill="#FFFFFF" stroke="#168A52" stroke-width="5"/>
+      <text x="0" y="8" text-anchor="middle" font-size="20" font-weight="800" fill="#168A52">O</text>
+    </g>
+    <g transform="translate(690 318)">
+      <circle r="28" fill="#FFFFFF" stroke="#1E62A2" stroke-width="5"/>
+      <text x="0" y="8" text-anchor="middle" font-size="20" font-weight="800" fill="#1E62A2">R</text>
+    </g>
+    <g transform="translate(1035 270)">
+      <circle r="28" fill="#FFFFFF" stroke="#C98100" stroke-width="5"/>
+      <text x="0" y="8" text-anchor="middle" font-size="20" font-weight="800" fill="#C98100">A</text>
+    </g>
+    <g transform="translate(1395 358)">
+      <circle r="28" fill="#FFFFFF" stroke="#168A52" stroke-width="5"/>
+      <text x="0" y="8" text-anchor="middle" font-size="20" font-weight="800" fill="#168A52">V</text>
+    </g>
+  </g>
+
+  <g opacity="0.38">
+    <circle cx="116" cy="132" r="5" fill="#1E62A2"/>
+    <circle cx="184" cy="192" r="4" fill="#168A52"/>
+    <circle cx="302" cy="108" r="4" fill="#1E62A2"/>
+    <circle cx="480" cy="160" r="5" fill="#168A52"/>
+    <circle cx="1220" cy="130" r="4" fill="#1E62A2"/>
+    <circle cx="1328" cy="230" r="5" fill="#168A52"/>
+    <circle cx="1740" cy="300" r="4" fill="#1E62A2"/>
+    <path d="M116 132l68 60l118-84l178 52M1220 130l108 100l412 70" stroke="#5B6472" stroke-width="2" fill="none"/>
+  </g>
+
+  <rect x="0" y="0" width="1920" height="1080" fill="none" stroke="#FFFFFF" stroke-width="28" opacity="0.52"/>
+</svg>

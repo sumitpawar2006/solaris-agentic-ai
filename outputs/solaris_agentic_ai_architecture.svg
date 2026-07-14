@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .title { font: 700 46px Arial, sans-serif; fill: #0b1220; }
+      .subtitle { font: 600 22px Arial, sans-serif; fill: #168a52; }
+      .section { font: 700 22px Arial, sans-serif; fill: #0b1220; }
+      .label { font: 700 18px Arial, sans-serif; fill: #0b1220; }
+      .small { font: 400 15px Arial, sans-serif; fill: #5b6472; }
+      .tiny { font: 700 13px Arial, sans-serif; fill: #5b6472; letter-spacing: .4px; }
+      .panel { fill: #f4f7f4; stroke: #ccd5cc; stroke-width: 2; rx: 14; }
+      .panel-blue { fill: #eef6ff; stroke: #1e62a2; stroke-width: 3; rx: 14; }
+      .panel-green { fill: #eaf7ef; stroke: #168a52; stroke-width: 3; rx: 14; }
+      .box { fill: #ffffff; stroke: #ccd5cc; stroke-width: 2; rx: 12; }
+      .box-green { fill: #ffffff; stroke: #168a52; stroke-width: 2.5; rx: 12; }
+      .box-blue { fill: #ffffff; stroke: #1e62a2; stroke-width: 2.5; rx: 12; }
+      .box-amber { fill: #fff7e8; stroke: #c98100; stroke-width: 2.5; rx: 12; }
+      .arrow { stroke: #c98100; stroke-width: 4; fill: none; marker-end: url(#arrowHead); }
+      .flow { stroke: #168a52; stroke-width: 3; fill: none; marker-end: url(#arrowHeadGreen); }
+      .dash { stroke: #1e62a2; stroke-width: 3; fill: none; stroke-dasharray: 8 8; marker-end: url(#arrowHeadBlue); }
+    </style>
+    <marker id="arrowHead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#c98100"/>
+    </marker>
+    <marker id="arrowHeadGreen" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#168a52"/>
+    </marker>
+    <marker id="arrowHeadBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#1e62a2"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1600" height="1000"/>
+
+  <text class="title" x="70" y="76">Solaris Agentic AI Architecture</text>
+  <text class="subtitle" x="72" y="114">Solar customer operations orchestration for the Energy sector</text>
+
+  <!-- Main layers -->
+  <rect class="panel" x="70" y="165" width="270" height="650"/>
+  <text class="section" x="100" y="205">Customer Surfaces</text>
+  <rect class="box" x="100" y="235" width="210" height="88"/>
+  <text class="label" x="122" y="268">Dashboard UI</text>
+  <text class="small" x="122" y="294">Generation, consumption,</text>
+  <text class="small" x="122" y="314">appliance and ticket views</text>
+  <rect class="box" x="100" y="347" width="210" height="88"/>
+  <text class="label" x="122" y="380">Floating Agent Chat</text>
+  <text class="small" x="122" y="406">OTP unlock, customer</text>
+  <text class="small" x="122" y="426">commands and reports</text>
+  <rect class="box" x="100" y="459" width="210" height="88"/>
+  <text class="label" x="122" y="492">Mission Control</text>
+  <text class="small" x="122" y="518">Approval cards, timeline,</text>
+  <text class="small" x="122" y="538">orchestration replay</text>
+  <rect class="box" x="100" y="571" width="210" height="88"/>
+  <text class="label" x="122" y="604">Auth + Opt-ins</text>
+  <text class="small" x="122" y="630">Dashboard login, OTP,</text>
+  <text class="small" x="122" y="650">email/WhatsApp choices</text>
+
+  <rect class="panel" x="390" y="165" width="260" height="650"/>
+  <text class="section" x="420" y="205">Solaris Backend</text>
+  <rect class="box" x="420" y="235" width="200" height="100"/>
+  <text class="label" x="442" y="268">Node.js API</text>
+  <text class="small" x="442" y="294">Small explicit endpoints</text>
+  <text class="small" x="442" y="314">Customer-specific state</text>
+  <rect class="box" x="420" y="365" width="200" height="100"/>
+  <text class="label" x="442" y="398">Security Layer</text>
+  <text class="small" x="442" y="424">Session isolation</text>
+  <text class="small" x="442" y="444">No cross-account data</text>
+  <rect class="box" x="420" y="495" width="200" height="100"/>
+  <text class="label" x="442" y="528">Event Log</text>
+  <text class="small" x="442" y="554">Cleaner commands, tickets,</text>
+  <text class="small" x="442" y="574">notifications, approvals</text>
+  <rect class="box" x="420" y="625" width="200" height="100"/>
+  <text class="label" x="442" y="658">Customer Memory</text>
+  <text class="small" x="442" y="684">Preferences, safe actions,</text>
+  <text class="small" x="442" y="704">history and learning</text>
+
+  <rect class="panel-blue" x="720" y="145" width="330" height="710"/>
+  <text class="section" x="755" y="190">OpenAI Reasoning Layer</text>
+  <text class="small" x="755" y="218">Natural language, reasoning,</text>
+  <text class="small" x="755" y="240">tool selection, reports, explainability</text>
+  <rect class="box-blue" x="760" y="285" width="250" height="155"/>
+  <text class="label" x="785" y="322">Solaris Orchestrator</text>
+  <text class="small" x="785" y="352">Goal routing</text>
+  <text class="small" x="785" y="376">Specialist agent selection</text>
+  <text class="small" x="785" y="400">Approval gate decision</text>
+  <text class="small" x="785" y="424">Tool execution + verification</text>
+  <rect class="box-amber" x="760" y="480" width="250" height="110"/>
+  <text class="label" x="785" y="515">Human Approval Gate</text>
+  <text class="small" x="785" y="544">Customer approves tickets,</text>
+  <text class="small" x="785" y="566">cleaning, reminders, actions</text>
+  <rect class="box-green" x="760" y="630" width="250" height="110"/>
+  <text class="label" x="785" y="665">Verify + Learn</text>
+  <text class="small" x="785" y="694">Track outcome, update history,</text>
+  <text class="small" x="785" y="716">remember safe preference</text>
+
+  <rect class="panel" x="1120" y="165" width="410" height="650"/>
+  <text class="section" x="1150" y="205">Specialist Agents + Tools</text>
+  <rect class="box-green" x="1150" y="235" width="160" height="72"/>
+  <text class="label" x="1168" y="266">Monitoring</text>
+  <text class="small" x="1168" y="290">Solar/load health</text>
+  <rect class="box-blue" x="1338" y="235" width="160" height="72"/>
+  <text class="label" x="1356" y="266">Appliance</text>
+  <text class="small" x="1356" y="290">NILM + plugs</text>
+  <rect class="box-green" x="1150" y="333" width="160" height="72"/>
+  <text class="label" x="1168" y="364">Bill Agent</text>
+  <text class="small" x="1168" y="388">Month comparison</text>
+  <rect class="box-blue" x="1338" y="333" width="160" height="72"/>
+  <text class="label" x="1356" y="364">Surplus</text>
+  <text class="small" x="1356" y="388">EV/load shifting</text>
+  <rect class="box-green" x="1150" y="431" width="160" height="72"/>
+  <text class="label" x="1168" y="462">Cleaning ROI</text>
+  <text class="small" x="1168" y="486">Dust/rain/value</text>
+  <rect class="box-blue" x="1338" y="431" width="160" height="72"/>
+  <text class="label" x="1356" y="462">Tickets</text>
+  <text class="small" x="1356" y="486">Escalation + SLA</text>
+  <rect class="box-green" x="1150" y="529" width="160" height="72"/>
+  <text class="label" x="1168" y="560">Benchmark</text>
+  <text class="small" x="1168" y="584">Peer ranking</text>
+  <rect class="box-blue" x="1338" y="529" width="160" height="72"/>
+  <text class="label" x="1356" y="560">Notify</text>
+  <text class="small" x="1356" y="584">Email/WhatsApp</text>
+  <rect class="box-amber" x="1150" y="640" width="348" height="86"/>
+  <text class="label" x="1172" y="672">Integration Adapters</text>
+  <text class="small" x="1172" y="698">Gmail, Twilio/WhatsApp, Calendar, cleaner,</text>
+  <text class="small" x="1172" y="718">future inverter, meter, battery, weather APIs</text>
+
+  <!-- Cross-layer arrows -->
+  <path class="arrow" d="M340 490 L388 490"/>
+  <path class="arrow" d="M650 490 L718 490"/>
+  <path class="arrow" d="M1050 490 L1118 490"/>
+  <path class="dash" d="M1248 728 C1180 900, 850 910, 620 728"/>
+  <path class="flow" d="M885 740 C835 805, 650 820, 520 728"/>
+
+  <!-- Agentic loop -->
+  <rect class="panel-green" x="160" y="865" width="1280" height="82"/>
+  <text class="tiny" x="188" y="898">AGENTIC WORKFLOW (Business value: faster service, lower manual effort, better decisions, scalable operations)</text>
+  <text class="label" x="188" y="928">Goal → Observe → Select Agents → Decide → Approval Gate → Execute Tool → Verify → Learn</text>
+</svg>

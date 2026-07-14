@@ -1,0 +1,14 @@
+node_modules/
+tmp/
+
+.env
+.env.*
+!.env.example
+
+*.log
+npm-debug.log*
+
+SolarisSecret.zip
+*.inspect.ndjson
+
+outputs/ui_*_preview.png

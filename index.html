@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solaris | Agentic AI Solar Assistant</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <section class="login-screen" id="login-screen">
+      <div class="landing-panel">
+        <div class="landing-copy">
+          <div class="brand login-brand">
+            <div class="brand-mark">S</div>
+            <div>
+              <strong>Solaris</strong>
+              <span>Agentic AI Solar Assistant</span>
+            </div>
+          </div>
+          <h1>Solar monitoring that acts for the customer.</h1>
+          <p>Track production, appliances, cleaning, alerts, and service tickets from one protected customer account.</p>
+          <p class="landing-hint">Use the Solaris chat button for limited guest help. Send your customer ID, email, or phone in chat, then verify the OTP sent to your registered email to unlock full access.</p>
+          <div class="landing-proof" aria-label="Solaris proof points">
+            <span><b>Observe</b> live solar data</span>
+            <span><b>Reason</b> with AI agents</span>
+            <span><b>Act</b> after approval</span>
+          </div>
+          <div class="landing-orbit" aria-label="Solaris agentic workflow preview">
+            <div class="orbit-core">
+              <strong>S</strong>
+              <span>Solaris</span>
+            </div>
+            <span class="orbit-node observe">Observe</span>
+            <span class="orbit-node reason">Reason</span>
+            <span class="orbit-node approve">Approve</span>
+            <span class="orbit-node verify">Verify</span>
+          </div>
+          <div class="landing-actions">
+            <button class="primary" id="show-signup" type="button">Sign Up</button>
+            <button id="show-login" type="button">Sign In</button>
+          </div>
+        </div>
+
+        <form class="login-panel auth-panel active" id="login-form">
+          <h2>Sign In</h2>
+          <p>Use your Solaris account to continue.</p>
+          <label class="field">
+            <span>Email</span>
+            <input id="login-email" type="email" autocomplete="email" value="customer@solaris.local" required />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="login-password" type="password" autocomplete="current-password" value="Solaris@123" required />
+          </label>
+          <button class="primary full" type="submit">Sign In</button>
+          <button class="link-button" id="switch-to-signup" type="button">Create new customer account</button>
+          <small class="login-error" id="login-error"></small>
+        </form>
+
+        <form class="login-panel auth-panel" id="signup-form">
+          <h2>Create Customer Account</h2>
+          <p>Register with your customer ID and contact details.</p>
+          <label class="field">
+            <span>Customer ID</span>
+            <input id="signup-customer-id" type="text" autocomplete="off" placeholder="CUS-10045" required />
+          </label>
+          <label class="field">
+            <span>Name</span>
+            <input id="signup-name" type="text" autocomplete="name" placeholder="Full name" required />
+          </label>
+          <label class="field">
+            <span>Phone Number</span>
+            <input id="signup-phone" type="tel" autocomplete="tel" placeholder="+91 98765 43210" required />
+          </label>
+          <label class="field">
+            <span>Email</span>
+            <input id="signup-email" type="email" autocomplete="email" placeholder="customer@example.com" required />
+          </label>
+          <label class="field">
+            <span>Address</span>
+            <textarea id="signup-address" autocomplete="street-address" placeholder="Installation address" required></textarea>
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="signup-password" type="password" autocomplete="new-password" required />
+          </label>
+          <button class="primary full" type="submit">Create Account</button>
+          <button class="link-button" id="switch-to-login" type="button">Already registered? Sign in</button>
+          <small class="login-error" id="signup-error"></small>
+        </form>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">S</div>
+        <div>
+          <strong>Solaris</strong>
+          <span>Agentic Solar AI</span>
+        </div>
+      </div>
+      <nav class="nav">
+        <button data-section="ai-agents" title="AI Agents"><span>AI Agents</span></button>
+        <button class="active" data-section="overview" title="Overview">⌂ <span>Overview</span></button>
+        <button data-section="agent" title="Agent">✦ <span>Agent</span></button>
+        <button data-section="appliances" title="Appliances">▦ <span>Appliances</span></button>
+        <button data-section="cleaning" title="Cleaning">◌ <span>Cleaning</span></button>
+        <button data-section="maintenance" title="Maintenance">⚙ <span>Maintenance</span></button>
+      </nav>
+      <div class="system-card">
+        <span class="label">System Health</span>
+        <strong id="health-score">92%</strong>
+        <small>Good performance with cleaning watch active.</small>
+      </div>
+    </aside>
+
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Live site</p>
+          <h1>Solaris Energy Command</h1>
+        </div>
+        <div class="status-strip">
+          <span id="user-chip">Welcome</span>
+          <span><b id="current-load">3.4</b> kW load</span>
+          <span><b id="solar-now">5.8</b> kW solar</span>
+          <span class="pill good" id="grid-state">Grid: Exporting</span>
+          <button id="logout-button">Logout</button>
+        </div>
+      </header>
+
+      <section class="demo-ribbon" aria-label="Solaris agentic operation summary">
+        <div>
+          <p class="eyebrow">Agentic operation layer</p>
+          <h2>Solaris turns solar data into approved customer actions.</h2>
+        </div>
+        <div class="demo-ribbon-flow">
+          <span>Observe</span>
+          <span>Reason</span>
+          <span>Approve</span>
+          <span>Act</span>
+          <span>Verify</span>
+          <span>Learn</span>
+        </div>
+      </section>
+
+      <section class="section active" id="overview">
+        <div class="metric-grid">
+          <article class="metric">
+            <span>Today Generated</span>
+            <strong id="today-generation">24.8 kWh</strong>
+            <small>12% above forecast</small>
+          </article>
+          <article class="metric">
+            <span>Self Consumption</span>
+            <strong id="self-consumption">68%</strong>
+            <small>4.1 kWh exported</small>
+          </article>
+          <article class="metric">
+            <span>Estimated Savings</span>
+            <strong id="savings">₹286</strong>
+            <small>₹6,920 this month</small>
+          </article>
+          <article class="metric">
+            <span>Night Usage</span>
+            <strong id="night-usage">8.2 kWh</strong>
+            <small>AC and geyser are highest</small>
+          </article>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="panel wide">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Generation vs consumption</p>
+                <h2>Energy Flow</h2>
+              </div>
+              <div class="segmented">
+                <button class="active" data-chart="day">Day</button>
+                <button data-chart="week">Week</button>
+                <button data-chart="month">Month</button>
+                <button data-chart="year">Year</button>
+              </div>
+            </div>
+            <div class="chart-summary" id="chart-summary"></div>
+            <canvas id="energy-chart" width="900" height="320" aria-label="Energy chart"></canvas>
+            <p class="note" id="chart-insight">Solaris compares production and home load to explain surplus and grid dependency.</p>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Agent queue</p>
+                <h2>On-Time Suggestions</h2>
+              </div>
+              <button class="icon-button" id="refresh-suggestions" title="Refresh suggestions">↻</button>
+            </div>
+            <div id="suggestions" class="suggestions"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="ai-agents">
+        <div class="subnav ai-agent-subnav" aria-label="AI Agent views">
+          <button class="active" data-ai-agent-view="agents" type="button">AI Agents</button>
+          <button data-ai-agent-view="mission" type="button">Mission Control</button>
+        </div>
+        <div class="ai-agents-layout">
+          <div class="panel ai-agent-view active" data-ai-agent-panel="agents">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Customer solar intelligence</p>
+                <h2>Agentic AI Agents</h2>
+              </div>
+              <span class="pill good">8 active</span>
+            </div>
+            <div class="agent-card-grid" id="agent-insights"></div>
+          </div>
+
+          <div class="panel agent-mission-control ai-agent-view" data-ai-agent-panel="mission">
+              <div class="panel-head compact-head">
+                <div>
+                  <p class="eyebrow">Agentic loop</p>
+                  <h2>Autonomous Solar Mission Control</h2>
+                </div>
+                <div class="mission-loop-pill" id="mission-loop-pill" aria-label="Observe Act Learn">
+                  <span class="mission-loop-step">Observe</span>
+                  <span class="mission-loop-arrow" aria-hidden="true">→</span>
+                  <span class="mission-loop-step">Act</span>
+                  <span class="mission-loop-arrow" aria-hidden="true">→</span>
+                  <span class="mission-loop-step">Learn</span>
+                </div>
+              </div>
+              <div class="mission-actions">
+                <button class="mission-memory-link" id="agent-memory-link" type="button">Agent Memory</button>
+                <button class="mission-replay-link scenario-run-button" id="run-judge-demo" type="button">Run Agentic Scenario</button>
+                <span class="mission-action-note" id="judge-demo-note" aria-live="polite"></span>
+              </div>
+              <div class="judge-demo-panel" id="judge-demo-panel"></div>
+              <div class="agent-daily-summary" id="agent-daily-summary"></div>
+              <div class="mission-grid">
+                <div class="mission-approval-column">
+                  <span class="label">Approval Center</span>
+                  <div class="agent-approval-list" id="agent-approval-list"></div>
+                </div>
+              </div>
+          </div>
+
+          <article class="panel ai-agent-prompts ai-agent-view active" data-ai-agent-panel="agents">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Prompt launcher</p>
+                <h2>Agent Prompts</h2>
+              </div>
+            </div>
+            <div class="quick-prompts">
+              <button data-prompt="Compare my solar with similar homes">Peer benchmark</button>
+              <button data-prompt="Explain my solar bill">Bill explainer</button>
+              <button data-prompt="Optimize my solar surplus">Surplus automation</button>
+              <button data-prompt="Calculate cleaning ROI">Cleaning ROI</button>
+              <button data-prompt="Diagnose underperformance">Underperformance diagnosis</button>
+              <button data-prompt="What is tomorrow solar forecast?">Solar forecast</button>
+              <button data-prompt="Check warranty and AMC">Warranty and AMC</button>
+              <button data-prompt="How much did I generate today?">Generation today</button>
+              <button data-prompt="Which appliance used the most power?">Top appliance</button>
+              <button data-prompt="When should I run my washing machine?">Best usage time</button>
+              <button data-prompt="Should I clean my panels?">Cleaning advice</button>
+              <button data-prompt="What is my service ticket status?">Ticket status</button>
+              <button data-prompt="Are WhatsApp and email alerts enabled?">Alert settings</button>
+              <button data-prompt="Add appliance Dishwasher using Smart plug">Add appliance</button>
+              <button data-prompt="Schedule cleaning tomorrow at 6 AM">Schedule cleaning</button>
+              <button data-prompt="Add cleaning to calendar tomorrow at 6 AM">Calendar cleaning</button>
+              <button data-prompt="Add EV charging to calendar tomorrow at 12 PM">Calendar EV charging</button>
+              <button data-prompt="Raise ticket for low production">Raise ticket</button>
+              <button data-prompt="Send WhatsApp report">Send WhatsApp report</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="appliances">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Hybrid tracking</p>
+              <h2>NILM + Smart Plug Appliance Tracker</h2>
+            </div>
+            <span class="pill" id="appliance-count">7 devices</span>
+          </div>
+          <form class="appliance-form" id="appliance-form">
+            <label class="field">
+              <span>Appliance Name</span>
+              <input id="appliance-name" type="text" placeholder="Dishwasher" required />
+            </label>
+            <label class="field">
+              <span>Type</span>
+              <select id="appliance-type">
+                <option>AC</option>
+                <option>Fridge</option>
+                <option>Geyser</option>
+                <option>Pump</option>
+                <option>Washing Machine</option>
+                <option>Dishwasher</option>
+                <option>EV Charger</option>
+                <option>Kitchen</option>
+                <option>Other</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Tracking</span>
+              <select id="appliance-source">
+                <option>NILM</option>
+                <option>Smart plug</option>
+                <option>Both</option>
+              </select>
+            </label>
+            <button class="primary" type="submit">Add Appliance</button>
+          </form>
+          <div class="appliance-list" id="appliance-list"></div>
+        </div>
+      </section>
+
+      <section class="section" id="cleaning">
+        <div class="dashboard-grid">
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Cleaner control</p>
+                <h2>Panel Cleaning</h2>
+              </div>
+              <span class="pill good" id="cleaner-state">Ready</span>
+            </div>
+            <div class="cleaner-status-box">
+              <span class="label">Current Status</span>
+              <strong id="cleaner-status-title">Schedule active</strong>
+              <p id="cleaner-status-message">Auto optimized cleaning schedule is active.</p>
+            </div>
+            <button class="warning-button full" id="suspend-cleaning" type="button">Suspend Current Activity</button>
+            <label class="field">
+              <span>Cleaning Mode</span>
+              <select id="cleaner-mode">
+                <option>Auto optimized</option>
+                <option>Scheduled</option>
+                <option>Manual only</option>
+              </select>
+            </label>
+            <label class="field" id="cleaner-schedule-field">
+              <span>Next Schedule</span>
+              <input id="cleaner-schedule" type="datetime-local" />
+            </label>
+            <button class="primary full" id="save-schedule">Save Schedule</button>
+            <div class="manual-cleaner-box">
+              <div>
+                <span class="label">Manual cleaner control</span>
+                <p>Available only when Cleaning Mode is saved as Manual only.</p>
+              </div>
+              <div class="control-row">
+                <button class="primary" id="start-cleaning">Start</button>
+                <button id="pause-cleaning">Pause</button>
+                <button id="stop-cleaning">Stop</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Cleaning intelligence</p>
+                <h2>Cleaning Tracker</h2>
+              </div>
+            </div>
+            <div class="tracker">
+              <div><span>Last cleaning</span><strong>Jul 03, 2026</strong></div>
+              <div><span>Dust risk</span><strong>Medium</strong></div>
+              <div><span>Rain forecast</span><strong>Low</strong></div>
+              <div><span>Production impact</span><strong>-9%</strong></div>
+            </div>
+            <p class="note" id="cleaning-note">Solaris will recommend cleaning if sunny-day production stays 15% below expected for 3 days.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="maintenance">
+        <div class="dashboard-grid">
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Service automation</p>
+                <h2>Fault & Ticket Agent</h2>
+              </div>
+              <span class="pill warning" id="ticket-count">1 open</span>
+            </div>
+            <div class="approval-card" id="underproduction-approval"></div>
+            <form class="ticket-form" id="ticket-form">
+              <label class="field">
+                <span>Ticket Type</span>
+                <select id="ticket-type">
+                  <option>Underproduction</option>
+                  <option>Inverter Fault</option>
+                  <option>Battery Issue</option>
+                  <option>Communication Failure</option>
+                  <option>Cleaning</option>
+                  <option>Billing</option>
+                  <option>Other</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Subject</span>
+                <input id="ticket-subject" type="text" placeholder="Short issue summary" required />
+              </label>
+              <label class="field">
+                <span>Description</span>
+                <textarea id="ticket-description" placeholder="Describe the issue, timing, and any observed symptoms" required></textarea>
+              </label>
+              <button class="primary full" id="create-ticket" type="submit">Create Ticket</button>
+              <p class="note" id="ticket-status-note">Similar open ticket types are blocked until closed. Type Other can be created multiple times.</p>
+            </form>
+            <div id="ticket-list" class="ticket-list"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Opt-in channels</p>
+                <h2>Notification Controls</h2>
+              </div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked id="whatsapp-opt" /> WhatsApp alerts</label>
+            <label class="toggle"><input type="checkbox" checked id="email-opt" /> Email reports</label>
+            <label class="toggle"><input type="checkbox" checked id="calendar-opt" /> Google Calendar plans</label>
+            <label class="toggle"><input type="checkbox" id="auto-ticket-opt" /> Auto-create critical tickets</label>
+            <label class="toggle"><input type="checkbox" checked id="quiet-opt" /> Respect quiet hours</label>
+            <button class="primary full" id="send-email-report" type="button">Send Email Report</button>
+            <button class="secondary full" id="send-whatsapp-report" type="button">Send WhatsApp Report</button>
+            <p class="note" id="email-status">Email reports go to the registered customer email address.</p>
+            <p class="note" id="whatsapp-status">WhatsApp reports go to the registered customer phone number.</p>
+            <div class="log" id="event-log"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <div class="floating-chat" id="floating-chat">
+      <button class="chat-launcher" id="chat-launcher" type="button" title="Open Solaris Agent">S</button>
+      <article class="panel chat-panel floating-chat-panel" id="floating-chat-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Conversational control</p>
+            <h2>Ask Solaris</h2>
+          </div>
+          <button class="icon-button" id="chat-close" type="button" title="Close Solaris Agent">×</button>
+        </div>
+        <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
+        <form class="chat-form" id="chat-form">
+          <input id="chat-input" type="text" placeholder="Ask about solar, appliances, cleaning, tickets..." autocomplete="off" />
+          <button class="icon-button chat-help-button" id="chat-help" type="button" title="Show Agent commands">?</button>
+          <button class="primary" type="submit">Send</button>
+        </form>
+        <div class="chat-command-menu" id="chat-command-menu">
+          <button data-agent-command="Compare my solar with similar homes">Peer benchmark</button>
+          <button data-agent-command="How much did I generate today?">Generation today</button>
+          <button data-agent-command="Which appliance used the most power?">Top appliance</button>
+          <button data-agent-command="When should I run my washing machine?">Best usage time</button>
+          <button data-agent-command="Should I clean my panels?">Cleaning advice</button>
+          <button data-agent-command="Explain my solar bill">Bill explainer</button>
+          <button data-agent-command="Optimize my solar surplus">Surplus automation</button>
+          <button data-agent-command="Calculate cleaning ROI">Cleaning ROI</button>
+          <button data-agent-command="Diagnose underperformance">Underperformance diagnosis</button>
+          <button data-agent-command="What is tomorrow solar forecast?">Solar forecast</button>
+          <button data-agent-command="Check warranty and AMC">Warranty and AMC</button>
+          <button data-agent-command="Suspend current cleaning and schedule cleaning tomorrow at 8 AM">Suspend and reschedule cleaning</button>
+          <button data-agent-command="Add cleaning to calendar tomorrow at 6 AM">Calendar cleaning plan</button>
+          <button data-agent-command="Add EV charging to calendar tomorrow at 12 PM">Calendar EV charging</button>
+          <button data-agent-command="Add appliance Dishwasher using Smart plug">Add appliance</button>
+          <button data-agent-command="Create ticket">Create ticket guided flow</button>
+          <button data-agent-command="What is my service ticket status?">Ticket status</button>
+          <button data-agent-command="Send me report">Send report</button>
+          <button data-agent-command="Send WhatsApp report">Send WhatsApp report</button>
+          <button data-agent-command="Are WhatsApp and email alerts enabled?">Alert settings</button>
+        </div>
+      </article>
+    </div>
+
+    <div class="timeline-modal" id="timeline-modal" hidden>
+      <div class="timeline-modal-backdrop" id="timeline-modal-backdrop"></div>
+      <article class="timeline-modal-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow" id="timeline-modal-eyebrow">Approval Decision Timeline</p>
+            <h2 id="timeline-modal-title">Decision timeline</h2>
+          </div>
+          <button class="icon-button" id="timeline-modal-close" type="button" title="Close timeline">×</button>
+        </div>
+        <div class="agent-run-timeline" id="timeline-modal-body"></div>
+      </article>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

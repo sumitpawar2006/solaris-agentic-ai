@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="220" viewBox="0 0 760 220" role="img" aria-labelledby="title desc">
+  <title id="title">Solaris Old Logo</title>
+  <desc id="desc">Original Solaris app logo style with yellow S mark and Agentic Solar AI wordmark.</desc>
+  <rect width="760" height="220" rx="24" fill="#18251E"/>
+  <g transform="translate(72 58)">
+    <rect x="0" y="0" width="104" height="104" rx="20" fill="#F5C44D"/>
+    <text x="52" y="72" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="64" font-weight="900" fill="#172019">S</text>
+  </g>
+  <g transform="translate(206 66)">
+    <text x="0" y="48" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="54" font-weight="800" fill="#FFFFFF">Solaris</text>
+    <text x="2" y="88" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="600" fill="#B8C8BD">Agentic Solar AI</text>
+  </g>
+</svg>

@@ -1,0 +1,15 @@
+Solaris Agentic AI Architecture - 60 second explanation
+
+Solaris has three main layers.
+
+First, the customer layer includes the dashboard, floating agent chat, Mission Control, authentication, OTP access, and notification opt-ins.
+
+Second, the Solaris backend keeps the system safe and operational. It manages customer-specific state, session isolation, explicit APIs, event logs, preferences, ticket history, and agent memory.
+
+Third, the OpenAI reasoning layer powers the Solaris Orchestrator Agent. The Orchestrator does not simply answer questions. It receives a goal, observes solar and customer data, selects the right specialist agents, decides the safest action, asks for approval when needed, executes tools, verifies the result, and learns customer preferences.
+
+The specialist agents are solar monitoring, appliance/NILM and smart plug tracking, bill explainer, surplus automation, cleaning ROI, underperformance tickets, peer benchmark, notification, and memory.
+
+The adapter layer connects Solaris to real operations: Gmail, WhatsApp, calendar reminders, ticket workflows, cleaner control, and future inverter, smart meter, battery, weather, and tariff APIs.
+
+The business value is operational transformation for solar customer operations: faster issue detection, fewer manual follow-ups, better customer decisions, improved solar self-consumption, and a repeatable workflow that can scale across many customers and sites.
