@@ -1488,7 +1488,7 @@ function renderGeneratedBill() {
 
   billBox.hidden = false;
   empty.hidden = true;
-  status.textContent = solaris.billPaid ? "Paid" : "Payment pending";
+  status.textContent = solaris.billPaid ? "Payment confirmed" : "Awaiting payment";
   status.className = `pill ${solaris.billPaid ? "good" : "warning"}`;
   $("#bill-invoice-number").textContent = bill.invoiceNumber;
   $("#bill-due-date").textContent = formatDisplayDate(bill.dueDate);
@@ -1507,10 +1507,11 @@ function renderGeneratedBill() {
     button.classList.toggle("active", button.dataset.paymentMethod === solaris.selectedPaymentMethod);
   });
   $("#pay-bill").disabled = !solaris.selectedPaymentMethod || solaris.billPaid;
+  $("#pay-bill").textContent = solaris.selectedPaymentMethod ? "Open Payment Link" : "Pay Bill";
   $("#payment-note").textContent = solaris.billPaid
-    ? `Payment completed using ${solaris.selectedPaymentMethod}.`
+    ? `Payment was confirmed externally using ${solaris.selectedPaymentMethod}.`
     : solaris.selectedPaymentMethod
-      ? `${solaris.selectedPaymentMethod} selected. Click Pay Bill to complete demo payment.`
+      ? `${solaris.selectedPaymentMethod} selected. Click Open Payment Link. Solaris will not mark paid until payment confirmation is received.`
       : "Select a payment option to continue.";
 }
 
@@ -1520,15 +1521,23 @@ function selectPaymentMethod(method) {
   renderGeneratedBill();
 }
 
-function payGeneratedBill() {
+async function payGeneratedBill() {
   if (!solaris.generatedBill || !solaris.selectedPaymentMethod) return;
-  solaris.billPaid = true;
-  solaris.events = [
-    { at: new Date().toISOString(), message: `Bill ${solaris.generatedBill.invoiceNumber} paid using ${solaris.selectedPaymentMethod}.` },
-    ...(solaris.events || []),
-  ];
-  renderGeneratedBill();
-  renderEvents();
+  const note = $("#payment-note");
+  note.textContent = "Creating payment link...";
+  try {
+    const data = await apiPost("/api/bill/payment-link", {
+      invoiceNumber: solaris.generatedBill.invoiceNumber,
+      amount: solaris.generatedBill.projectedPayable,
+      method: solaris.selectedPaymentMethod,
+    });
+    solaris.events = data.events || solaris.events;
+    note.textContent = data.message || "Payment link opened. Waiting for payment confirmation.";
+    window.open(data.paymentUrl, "_blank", "noopener");
+    renderEvents();
+  } catch (error) {
+    note.textContent = error.message;
+  }
 }
 
 function formatDisplayDate(value) {

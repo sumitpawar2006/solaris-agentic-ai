@@ -35,3 +35,22 @@ For Render:
 5. Deploy and open the public Render URL.
 
 Never commit real Gmail, WhatsApp, Twilio, Meta, Google, or OpenAI secrets.
+
+## Bill Payment Links
+
+Solaris can generate a real payment link for a generated bill when payment configuration is present.
+
+Set one of these in the hosting environment:
+
+```text
+PAYMENT_URL=https://your-payment-gateway-or-payment-link.example/pay
+```
+
+Or for UPI deep links:
+
+```text
+UPI_ID=your-upi-id@bank
+UPI_NAME=Solaris
+```
+
+Solaris opens the configured payment link, but it does not mark the bill paid unless a real payment confirmation integration/webhook is added.

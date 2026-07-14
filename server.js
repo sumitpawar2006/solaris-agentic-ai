@@ -474,6 +474,18 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (url.pathname === "/api/bill/payment-link" && req.method === "POST") {
+      const body = await readBody(req);
+      const method = String(body.method || "").trim();
+      const invoiceNumber = String(body.invoiceNumber || "").trim();
+      const amount = Number(body.amount || 0);
+      const result = buildPaymentLink({ method, invoiceNumber, amount });
+      if (result.error) return sendJson(res, result, 409);
+      addEvent(`Payment link created for ${invoiceNumber} using ${method}.`);
+      sendJson(res, { ...result, events: state.events });
+      return;
+    }
+
     if (url.pathname === "/api/cleaner/command" && req.method === "POST") {
       const user = getSessionUser(req);
       const body = await readBody(req);
@@ -1641,6 +1653,43 @@ function applianceLimitAdvice(item, index) {
   if (type.includes("pump") || type.includes("washing") || type.includes("dishwasher")) return "Schedule this flexible load in solar hours instead of evening.";
   if (type.includes("fridge")) return "Do not switch off; check door seal and temperature setting.";
   return index === 0 ? "Limit runtime or shift this load to solar hours where practical." : "Monitor trend and shift flexible usage to solar hours.";
+}
+
+function buildPaymentLink({ method, invoiceNumber, amount }) {
+  if (!method || !invoiceNumber || !Number.isFinite(amount) || amount <= 0) {
+    return { error: "Payment method, invoice number, and amount are required." };
+  }
+  const paymentUrl = process.env.PAYMENT_URL || "";
+  const upiId = process.env.UPI_ID || "";
+  const upiName = process.env.UPI_NAME || "Solaris";
+  if (method === "UPI" && upiId) {
+    const params = new URLSearchParams({
+      pa: upiId,
+      pn: upiName,
+      am: String(amount),
+      cu: "INR",
+      tn: invoiceNumber,
+    });
+    return {
+      configured: true,
+      provider: "UPI",
+      paymentUrl: `upi://pay?${params.toString()}`,
+      message: "UPI payment link generated. Open it on a device with a UPI app installed.",
+    };
+  }
+  if (paymentUrl) {
+    const separator = paymentUrl.includes("?") ? "&" : "?";
+    return {
+      configured: true,
+      provider: method,
+      paymentUrl: `${paymentUrl}${separator}invoice=${encodeURIComponent(invoiceNumber)}&amount=${encodeURIComponent(amount)}&method=${encodeURIComponent(method)}`,
+      message: "Payment gateway link generated. Payment confirmation must come from the gateway/webhook.",
+    };
+  }
+  return {
+    configured: false,
+    error: "Payment gateway is not configured. Set PAYMENT_URL or UPI_ID in the hosting environment.",
+  };
 }
 
 function getCompletedBillComparison() {
