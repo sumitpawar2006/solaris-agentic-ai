@@ -1469,11 +1469,12 @@ function generateBill() {
     topAppliance: overview.topAppliance,
     appliances: overview.appliances,
   };
-  solaris.selectedPaymentMethod = "";
+  solaris.selectedPaymentMethod = "UPI";
   solaris.billPaid = false;
   solaris.paymentQrDataUrl = "";
   solaris.paymentUrl = "";
   renderGeneratedBill();
+  createPaymentQr();
 }
 
 function renderGeneratedBill() {
@@ -1511,27 +1512,38 @@ function renderGeneratedBill() {
     button.classList.toggle("active", button.dataset.paymentMethod === solaris.selectedPaymentMethod);
   });
   $("#pay-bill").disabled = !solaris.selectedPaymentMethod || solaris.billPaid;
-  $("#pay-bill").textContent = solaris.selectedPaymentMethod ? "Open Payment Link" : "Pay Bill";
+  $("#pay-bill").textContent = solaris.paymentUrl ? "Open Payment Link" : "Generate QR";
   $("#payment-note").textContent = solaris.billPaid
     ? `Payment was confirmed externally using ${solaris.selectedPaymentMethod}.`
     : solaris.selectedPaymentMethod
-      ? `${solaris.selectedPaymentMethod} selected. Click Open Payment Link. Solaris will not mark paid until payment confirmation is received.`
+      ? solaris.paymentUrl
+        ? `${solaris.selectedPaymentMethod} QR is ready. Scan the QR or open the payment link. Solaris will not mark paid until payment confirmation is received.`
+        : `${solaris.selectedPaymentMethod} selected. Solaris is preparing the payment QR.`
       : "Select a payment option to continue.";
   renderPaymentQr();
 }
 
-function selectPaymentMethod(method) {
+async function selectPaymentMethod(method) {
   if (!solaris.generatedBill || solaris.billPaid) return;
   solaris.selectedPaymentMethod = method;
   solaris.paymentQrDataUrl = "";
   solaris.paymentUrl = "";
   renderGeneratedBill();
+  await createPaymentQr();
 }
 
 async function payGeneratedBill() {
+  if (solaris.paymentUrl) {
+    window.open(solaris.paymentUrl, "_blank", "noopener");
+    return;
+  }
+  await createPaymentQr();
+}
+
+async function createPaymentQr() {
   if (!solaris.generatedBill || !solaris.selectedPaymentMethod) return;
   const note = $("#payment-note");
-  note.textContent = "Creating payment link...";
+  note.textContent = "Generating payment QR...";
   try {
     const data = await apiPost("/api/bill/payment-link", {
       invoiceNumber: solaris.generatedBill.invoiceNumber,
@@ -1541,9 +1553,9 @@ async function payGeneratedBill() {
     solaris.events = data.events || solaris.events;
     solaris.paymentQrDataUrl = data.qrDataUrl || "";
     solaris.paymentUrl = data.paymentUrl || "";
-    note.textContent = data.message || "Payment link opened. Waiting for payment confirmation.";
+    note.textContent = data.message || "Payment QR generated. Waiting for payment confirmation.";
+    renderGeneratedBill();
     renderPaymentQr();
-    window.open(data.paymentUrl, "_blank", "noopener");
     renderEvents();
   } catch (error) {
     note.textContent = error.message;
@@ -1556,8 +1568,13 @@ async function payGeneratedBill() {
 function renderPaymentQr() {
   const card = $("#payment-qr-card");
   if (!card) return;
+  const hasBill = Boolean(solaris.generatedBill && solaris.selectedPaymentMethod);
   const hasQr = Boolean(solaris.paymentQrDataUrl && solaris.paymentUrl);
-  card.hidden = !hasQr;
+  card.hidden = !hasBill;
+  if (!hasBill) return;
+  card.classList.toggle("qr-ready", hasQr);
+  $("#payment-qr-image").hidden = !hasQr;
+  $("#payment-link").hidden = !hasQr;
   if (!hasQr) return;
   $("#payment-qr-image").src = solaris.paymentQrDataUrl;
   $("#payment-link").href = solaris.paymentUrl;
