@@ -57,6 +57,12 @@ Or add the full JSON as one environment variable:
 FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-firebase-project-id",...}
 ```
 
+For local development only, you can point Solaris at the downloaded JSON file using an ignored `.env.local` file:
+
+```text
+FIREBASE_SERVICE_ACCOUNT_PATH=C:\Users\you\Downloads\firebase-service-account.json
+```
+
 Solaris writes to these Firestore collections:
 
 ```text
