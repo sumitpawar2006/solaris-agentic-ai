@@ -8,6 +8,7 @@ const { isEmailConfigured, sendSolarisEmail } = require("./emailAdapter");
 const { isWhatsAppConfigured, normalizeWhatsAppNumber, sendSolarisWhatsApp, sendSolarisWhatsAppContent, sendSolarisWhatsAppTemplate, whatsappProvider } = require("./whatsappAdapter");
 const { isGoogleCalendarConfigured, createSolarisCalendarEvent } = require("./calendarAdapter");
 const {
+  getFirebaseAuthReadiness,
   getFirebaseWebConfig,
   isFirebaseConfigured,
   loadSolarisFirebaseData,
@@ -288,7 +289,8 @@ const server = http.createServer(async (req, res) => {
         sendJson(res, { configured: false, error: "Firebase web authentication is not configured." }, 503);
         return;
       }
-      sendJson(res, { configured: true, config });
+      const auth = await getFirebaseAuthReadiness();
+      sendJson(res, { configured: true, config, auth });
       return;
     }
 

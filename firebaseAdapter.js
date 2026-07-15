@@ -59,6 +59,20 @@ async function verifyFirebaseIdToken(idToken) {
   return auth.verifyIdToken(idToken, true);
 }
 
+async function getFirebaseAuthReadiness() {
+  try {
+    const auth = getFirebaseAuth();
+    if (!auth) return { ready: false };
+    await auth.listUsers(1);
+    return { ready: true };
+  } catch (error) {
+    return {
+      ready: false,
+      reason: /CONFIGURATION_NOT_FOUND/i.test(String(error?.message || "")) ? "not-initialized" : "unavailable",
+    };
+  }
+}
+
 function loadLocalEnv() {
   if (localEnvLoaded) return;
   localEnvLoaded = true;
@@ -123,6 +137,7 @@ async function saveSolarisUserState(userId, state) {
 }
 
 module.exports = {
+  getFirebaseAuthReadiness,
   getFirebaseWebConfig,
   isFirebaseConfigured,
   loadSolarisFirebaseData,

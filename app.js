@@ -38,6 +38,7 @@ const solaris = {
   phoneConfirmation: null,
   pendingFirebaseUser: null,
   recaptchaVerifier: null,
+  phoneInput: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -50,6 +51,7 @@ async function init() {
   bindFloatingChat();
   bindControls();
   bindAuth();
+  initializePhoneCountrySelector();
   await initializeFirebaseAuthentication();
   await checkAuth();
   startDashboardRefresh();
@@ -333,6 +335,12 @@ async function initializeFirebaseAuthentication() {
     solaris.firebaseAuth = app.auth();
     await solaris.firebaseAuth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL);
     solaris.firebaseReady = true;
+    const setupLink = $("#auth-setup-link");
+    setupLink.href = `https://console.firebase.google.com/project/${response.config.projectId}/authentication/providers`;
+    $("#auth-setup-notice").hidden = response.auth?.ready !== false;
+    if (response.auth?.ready === false) {
+      $("#login-error").textContent = "Firebase Authentication is not active yet. Complete the setup above before signing in.";
+    }
   } catch (error) {
     solaris.firebaseReady = false;
     const message = error.message.includes("503")
@@ -340,6 +348,18 @@ async function initializeFirebaseAuthentication() {
       : error.message;
     $("#login-error").textContent = message;
   }
+}
+
+function initializePhoneCountrySelector() {
+  if (!window.intlTelInput) return;
+  solaris.phoneInput = window.intlTelInput($("#auth-phone"), {
+    initialCountry: "in",
+    countryOrder: ["in", "us", "gb", "ae", "sg", "au"],
+    separateDialCode: true,
+    strictMode: true,
+    nationalMode: true,
+    loadUtils: () => import("https://cdn.jsdelivr.net/npm/intl-tel-input@25.10.6/build/js/utils.js"),
+  });
 }
 
 function requireFirebaseAuth() {
@@ -368,9 +388,10 @@ async function sendPhoneOtp(event) {
   $("#phone-error").textContent = "";
   try {
     requireFirebaseAuth();
-    const phone = $("#auth-phone").value.trim();
-    if (!/^\+[1-9]\d{7,14}$/.test(phone.replace(/[\s()-]/g, ""))) {
-      throw new Error("Enter a valid mobile number with country code, for example +919876543210.");
+    if (solaris.phoneInput?.promise) await solaris.phoneInput.promise;
+    const phone = solaris.phoneInput?.getNumber() || $("#auth-phone").value.trim();
+    if (!/^\+[1-9]\d{7,14}$/.test(phone.replace(/[\s()-]/g, "")) || (solaris.phoneInput && !solaris.phoneInput.isValidNumber())) {
+      throw new Error("Select your country and enter a valid mobile number.");
     }
     if (!solaris.recaptchaVerifier) {
       solaris.recaptchaVerifier = new window.firebase.auth.RecaptchaVerifier("firebase-recaptcha", {
@@ -472,6 +493,7 @@ function firebaseAuthMessage(error) {
     "auth/invalid-verification-code": "The mobile OTP is incorrect or expired.",
     "auth/too-many-requests": "Too many attempts. Wait a few minutes and try again.",
     "auth/operation-not-allowed": "This sign-in method is not enabled in Firebase Authentication.",
+    "auth/configuration-not-found": "Firebase Authentication is not active. Open Firebase Authentication, click Get started, and enable this sign-in method.",
     "auth/not-configured": "Firebase Authentication is not configured yet.",
   };
   return messages[code] || error?.message || "Authentication failed. Please try again.";

@@ -371,6 +371,33 @@ button:hover {
   background: #f6fbf8;
 }
 
+.auth-setup-notice {
+  display: grid;
+  gap: 5px;
+  margin: 0 0 16px;
+  padding: 12px;
+  border: 1px solid #e2b13d;
+  border-left: 4px solid #d98e04;
+  border-radius: 6px;
+  background: #fff9e8;
+  color: #5e4713;
+  font-size: 13px;
+}
+
+.auth-setup-notice[hidden] {
+  display: none;
+}
+
+.auth-setup-notice span {
+  line-height: 1.4;
+}
+
+.auth-setup-notice a {
+  width: fit-content;
+  color: #7a5200;
+  font-weight: 800;
+}
+
 .google-mark,
 .phone-mark {
   width: 24px;
@@ -414,6 +441,19 @@ button:hover {
   min-height: 0;
   margin: 4px 0 14px;
   overflow: hidden;
+}
+
+.iti {
+  width: 100%;
+}
+
+.iti__country-container {
+  border-radius: 8px 0 0 8px;
+}
+
+.iti__dropdown-content {
+  z-index: 20;
+  max-width: min(390px, calc(100vw - 56px));
 }
 
 #phone-otp-fields[hidden] {
