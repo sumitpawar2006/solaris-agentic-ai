@@ -39,6 +39,7 @@ const solaris = {
   pendingFirebaseUser: null,
   recaptchaVerifier: null,
   phoneInput: null,
+  googleTokenClient: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -334,6 +335,7 @@ async function initializeFirebaseAuthentication() {
     const app = window.firebase.apps.length ? window.firebase.app() : window.firebase.initializeApp(response.config);
     solaris.firebaseAuth = app.auth();
     await solaris.firebaseAuth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL);
+    initializeGoogleIdentityClient(response.config.googleClientId);
     solaris.firebaseReady = true;
     const setupLink = $("#auth-setup-link");
     setupLink.href = `https://console.firebase.google.com/project/${response.config.projectId}/authentication/providers`;
@@ -348,6 +350,23 @@ async function initializeFirebaseAuthentication() {
       : error.message;
     $("#login-error").textContent = message;
   }
+}
+
+function initializeGoogleIdentityClient(clientId) {
+  if (!clientId || !window.google?.accounts?.oauth2) {
+    solaris.googleTokenClient = null;
+    return;
+  }
+  solaris.googleTokenClient = window.google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: "openid email profile",
+    callback: handleGoogleAccessToken,
+    error_callback: (error) => {
+      $("#login-error").textContent = error?.type === "popup_closed"
+        ? "Google sign-in was cancelled."
+        : "Google could not open the account selector. Allow popups and try again.";
+    },
+  });
 }
 
 function initializePhoneCountrySelector() {
@@ -374,9 +393,20 @@ async function signInWithGoogle() {
   $("#login-error").textContent = "";
   try {
     requireFirebaseAuth();
-    const provider = new window.firebase.auth.GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: "select_account" });
-    const credential = await solaris.firebaseAuth.signInWithPopup(provider);
+    if (!solaris.googleTokenClient) throw new Error("Google Identity Services is not ready. Refresh the page and try again.");
+    solaris.googleTokenClient.requestAccessToken({ prompt: "select_account" });
+  } catch (error) {
+    $("#login-error").textContent = firebaseAuthMessage(error);
+  }
+}
+
+async function handleGoogleAccessToken(response) {
+  try {
+    if (response.error || !response.access_token) {
+      throw new Error(response.error_description || "Google did not return a sign-in credential.");
+    }
+    const firebaseCredential = window.firebase.auth.GoogleAuthProvider.credential(null, response.access_token);
+    const credential = await solaris.firebaseAuth.signInWithCredential(firebaseCredential);
     await completeFirebaseSignIn(credential.user);
   } catch (error) {
     $("#login-error").textContent = firebaseAuthMessage(error);

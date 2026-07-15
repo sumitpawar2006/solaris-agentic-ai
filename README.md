@@ -87,11 +87,12 @@ FIREBASE_AUTH_DOMAIN=your-firebase-project-id.firebaseapp.com
 FIREBASE_WEB_APP_ID=your-firebase-web-app-id
 FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
 FIREBASE_STORAGE_BUCKET=your-firebase-storage-bucket
+FIREBASE_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 ```
 
 In Firebase Console, open **Authentication**, click **Get started**, and enable Email/Password, Google, and Phone in **Sign-in method**. Select a support email for Google. In Authentication settings, add every deployed website domain to **Authorized domains** and allow the required SMS regions.
 
-The browser signs in with Firebase, then the Solaris server verifies the Firebase ID token before issuing an HTTP-only customer session cookie. First-time Google and phone users complete their customer ID and solar installation profile once. Test real phone authentication on an authorized HTTPS deployment domain.
+Google sign-in uses Google Identity Services and exchanges the Google credential with Firebase, avoiding cross-domain redirect storage failures in embedded browsers. The Solaris server then verifies the Firebase ID token before issuing an HTTP-only customer session cookie. First-time Google and phone users complete their customer ID and solar installation profile once. Test real phone authentication on an authorized HTTPS deployment domain.
 
 ## Bill Payment Links
 

@@ -49,6 +49,7 @@ function getFirebaseWebConfig() {
     appId: process.env.FIREBASE_WEB_APP_ID || "",
     messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "",
     storageBucket: process.env.FIREBASE_STORAGE_BUCKET || `${projectId}.appspot.com`,
+    googleClientId: process.env.FIREBASE_GOOGLE_CLIENT_ID || "",
   };
 }
 
