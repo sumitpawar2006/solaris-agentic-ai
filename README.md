@@ -36,6 +36,36 @@ For Render:
 
 Never commit real Gmail, WhatsApp, Twilio, Meta, Google, or OpenAI secrets.
 
+## Firebase Firestore Persistence
+
+Solaris can persist customer accounts and dashboard state in Firebase Firestore. If Firebase variables are missing, Solaris falls back to in-memory demo data.
+
+1. Create a Firebase project.
+2. Enable Firestore Database.
+3. Create a Firebase service account key.
+4. Add either the split variables:
+
+```text
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_CLIENT_EMAIL=your-service-account@your-firebase-project-id.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nreplace-with-private-key\n-----END PRIVATE KEY-----\n"
+```
+
+Or add the full JSON as one environment variable:
+
+```text
+FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-firebase-project-id",...}
+```
+
+Solaris writes to these Firestore collections:
+
+```text
+solarisUsers
+solarisUserStates
+```
+
+Do not commit Firebase private keys.
+
 ## Bill Payment Links
 
 Solaris can generate a real payment link for a generated bill when payment configuration is present.

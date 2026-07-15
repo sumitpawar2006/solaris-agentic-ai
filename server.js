@@ -7,6 +7,7 @@ const QRCode = require("qrcode");
 const { isEmailConfigured, sendSolarisEmail } = require("./emailAdapter");
 const { isWhatsAppConfigured, normalizeWhatsAppNumber, sendSolarisWhatsApp, sendSolarisWhatsAppContent, sendSolarisWhatsAppTemplate, whatsappProvider } = require("./whatsappAdapter");
 const { isGoogleCalendarConfigured, createSolarisCalendarEvent } = require("./calendarAdapter");
+const { isFirebaseConfigured, loadSolarisFirebaseData, saveSolarisUser, saveSolarisUserState } = require("./firebaseAdapter");
 
 const port = Number(process.env.PORT || 8787);
 const root = __dirname;
@@ -310,6 +311,8 @@ const server = http.createServer(async (req, res) => {
       sessions.set(token, { userId: user.id, level: "dashboard", createdAt: Date.now() });
       res.setHeader("Set-Cookie", cookie("solaris_session", token, { httpOnly: true, sameSite: "Lax", maxAge: 60 * 60 * 8 }));
       stateContext.run(getStateForUser(user), () => addEvent(`New customer registered: ${user.customerId}.`));
+      await persistSolarisUser(user);
+      await persistSolarisState(user);
       sendJson(res, { authenticated: true, user: sanitizeUser(user) }, 201);
       return;
     }
@@ -426,11 +429,13 @@ const server = http.createServer(async (req, res) => {
       await ensureTicketApprovalWhatsApp(user);
       refreshAgentInsights(user);
       ensureAutoAgentApprovals(user);
+      await persistSolarisState(user);
       sendJson(res, state);
       return;
     }
 
     if (url.pathname === "/api/suggestions/refresh" && req.method === "POST") {
+      const user = getSessionUser(req);
       const surplus = analyzeSolarSurplus();
       const item = {
         title: "Solar surplus window checked",
@@ -438,6 +443,7 @@ const server = http.createServer(async (req, res) => {
       };
       state.suggestions.unshift(item);
       addEvent("Suggestions refreshed using Solar Surplus Automation Agent.");
+      await persistSolarisState(user);
       sendJson(res, { suggestions: state.suggestions, events: state.events });
       return;
     }
@@ -451,6 +457,7 @@ const server = http.createServer(async (req, res) => {
 
       const reply = await handleAgentMessageWithAi(message, user, session);
       addEvent(`Agent answered: ${reply.intent}`);
+      await persistSolarisState(user);
       sendJson(res, { reply, events: state.events });
       return;
     }
@@ -460,6 +467,7 @@ const server = http.createServer(async (req, res) => {
       const appliance = createAppliance(body);
       state.appliances.push(appliance);
       addEvent(`Added appliance ${appliance.name} using ${appliance.source} tracking.`);
+      await persistSolarisState(getSessionUser(req));
       sendJson(res, { appliance, appliances: state.appliances, events: state.events });
       return;
     }
@@ -471,6 +479,7 @@ const server = http.createServer(async (req, res) => {
 
       state.appliances = state.appliances.filter((item) => item.id !== id);
       addEvent(`Removed appliance ${appliance.name}.`);
+      await persistSolarisState(getSessionUser(req));
       sendJson(res, { appliances: state.appliances, events: state.events });
       return;
     }
@@ -483,6 +492,7 @@ const server = http.createServer(async (req, res) => {
       const result = await buildPaymentLink({ method, invoiceNumber, amount });
       if (result.error) return sendJson(res, result, 409);
       addEvent(`Payment link created for ${invoiceNumber} using ${method}.`);
+      await persistSolarisState(getSessionUser(req));
       sendJson(res, { ...result, events: state.events });
       return;
     }
@@ -498,6 +508,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       await applyCleanerCommand(command, user, "Dashboard");
+      await persistSolarisState(user);
       sendJson(res, { cleaner: state.cleaner, events: state.events });
       return;
     }
@@ -536,6 +547,7 @@ const server = http.createServer(async (req, res) => {
               durationMinutes: 60,
               source: "Dashboard",
             });
+      await persistSolarisState(user);
       sendJson(res, { cleaner: state.cleaner, events: state.events, calendarResult });
       return;
     }
@@ -546,6 +558,7 @@ const server = http.createServer(async (req, res) => {
       const plan = normalizeCalendarPlan(body);
       const calendarResult = await createCalendarPlan(user, { ...plan, source: "Dashboard" });
       if (!calendarResult.ok) return sendJson(res, { error: calendarResult.error, calendarResult, events: state.events }, calendarResult.status || 400);
+      await persistSolarisState(user);
       sendJson(res, { calendarResult, events: state.events });
       return;
     }
@@ -553,6 +566,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === "/api/judge-demo/run" && req.method === "POST") {
       const user = getSessionUser(req);
       const agentDemo = runJudgeDemo(user);
+      await persistSolarisState(user);
       sendJson(res, {
         agentDemo,
         agentRuns: state.agentRuns,
@@ -570,6 +584,7 @@ const server = http.createServer(async (req, res) => {
       const action = parts[3] || "";
       const result = action === "approve" ? await approveAgentApproval(id, user) : action === "reject" ? rejectAgentApproval(id) : { error: "Unsupported approval action.", status: 400 };
       if (result.error) return sendJson(res, { error: result.error, approvals: state.agentApprovals, events: state.events }, result.status || 400);
+      await persistSolarisState(user);
       sendJson(res, { ...result, approvals: state.agentApprovals, agentRuns: state.agentRuns, agentMemory: state.agentMemory, events: state.events });
       return;
     }
@@ -580,6 +595,7 @@ const server = http.createServer(async (req, res) => {
       state.cleaner.state = "Suspended";
       state.cleaner.statusMessage = "Current cleaning schedule/activity is suspended. New settings are now allowed.";
       addEvent("Current cleaning schedule/activity was suspended.");
+      await persistSolarisState(getSessionUser(req));
       sendJson(res, { cleaner: state.cleaner, events: state.events });
       return;
     }
@@ -613,6 +629,7 @@ const server = http.createServer(async (req, res) => {
           { name: "Learning", detail: "Block duplicate open tickets for the same type except Other.", status: "done" },
         ],
       });
+      await persistSolarisState(getSessionUser(req));
       sendJson(res, { ticket, tickets: state.tickets, events: state.events });
       return;
     }
@@ -621,6 +638,7 @@ const server = http.createServer(async (req, res) => {
       const user = getSessionUser(req);
       const result = await approveUnderproductionTicket(user, "Dashboard");
       if (result.error) return sendJson(res, { error: result.error }, result.status || 400);
+      await persistSolarisState(user);
       sendJson(res, { ticket: result.ticket, tickets: state.tickets, ticketApproval: state.ticketApproval, agentRuns: state.agentRuns, events: state.events, notificationStatus: result.notificationStatus });
       return;
     }
@@ -629,6 +647,7 @@ const server = http.createServer(async (req, res) => {
       const user = getSessionUser(req);
       const result = await rejectUnderproductionTicket(user, "Dashboard");
       if (result.error) return sendJson(res, { error: result.error }, result.status || 400);
+      await persistSolarisState(user);
       sendJson(res, { ticket: result.ticket, tickets: state.tickets, ticketApproval: state.ticketApproval, agentRuns: state.agentRuns, events: state.events, notificationStatus: result.notificationStatus });
       return;
     }
@@ -637,6 +656,7 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       state.preferences = { ...state.preferences, ...body };
       addEvent("Notification and automation preferences updated.");
+      await persistSolarisState(getSessionUser(req));
       sendJson(res, { preferences: state.preferences, events: state.events });
       return;
     }
@@ -654,11 +674,13 @@ const server = http.createServer(async (req, res) => {
         const result = await sendSolarisEmail(report);
         addEvent(result.sent ? `Email report sent to ${user.email}.` : `Email report preview generated for ${user.email}; Gmail is not configured.`);
         const whatsappResult = await sendReportWhatsApp(user, report, body.reportType || "daily");
+        await persistSolarisState(user);
         sendJson(res, { result, whatsappResult, events: state.events, configured: isEmailConfigured(), whatsappConfigured: isWhatsAppConfigured() });
       } catch (error) {
         const message = friendlyEmailError(error);
         addEvent(`Email report failed for ${user.email}: ${message}`);
         const whatsappResult = await sendReportWhatsApp(user, report, body.reportType || "daily");
+        await persistSolarisState(user);
         sendJson(res, { error: message, detail: error.message, whatsappResult, events: state.events, configured: isEmailConfigured(), whatsappConfigured: isWhatsAppConfigured() }, 502);
       }
       return;
@@ -677,10 +699,12 @@ const server = http.createServer(async (req, res) => {
         const result = message
           ? await sendWhatsAppAlert(user, message)
           : await sendWhatsAppTemplateTest(user, body.templateName, body.languageCode);
+        await persistSolarisState(user);
         sendJson(res, { result, events: state.events, configured: isWhatsAppConfigured() });
       } catch (error) {
         const messageText = friendlyWhatsAppError(error);
         addEvent(`WhatsApp alert failed for ${user.phone}: ${messageText}`);
+        await persistSolarisState(user);
         sendJson(res, { error: messageText, detail: error.detail || error.message, events: state.events, configured: isWhatsAppConfigured() }, 502);
       }
       return;
@@ -698,9 +722,11 @@ const server = http.createServer(async (req, res) => {
       const report = buildEmailReport(user, reportType);
       const result = await sendReportWhatsApp(user, report, reportType);
       if (result.error) {
+        await persistSolarisState(user);
         sendJson(res, { error: result.error, result, events: state.events, configured: isWhatsAppConfigured() }, 502);
         return;
       }
+      await persistSolarisState(user);
       sendJson(res, { result, events: state.events, configured: isWhatsAppConfigured() });
       return;
     }
@@ -711,9 +737,14 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(port, () => {
-  console.log(`Solaris running at http://localhost:${port}`);
-});
+startServer();
+
+async function startServer() {
+  await loadFirebaseIntoMemory();
+  server.listen(port, () => {
+    console.log(`Solaris running at http://localhost:${port}`);
+  });
+}
 
 function setCommonHeaders(req, res) {
   const origin = req.headers.origin || `http://localhost:${port}`;
@@ -3378,6 +3409,43 @@ function getStateForUser(user) {
     userStates.set(user.id, createInitialState({ seedDemoTicket: user.id === demoUser.id }));
   }
   return userStates.get(user.id);
+}
+
+async function loadFirebaseIntoMemory() {
+  if (!isFirebaseConfigured()) {
+    console.log("Firebase not configured; using in-memory Solaris data.");
+    return;
+  }
+  try {
+    const data = await loadSolarisFirebaseData();
+    for (const user of data.users || []) {
+      if (user?.id) users.set(user.id, user);
+    }
+    for (const item of data.states || []) {
+      if (item?.userId && item?.state) userStates.set(item.userId, item.state);
+    }
+    console.log(`Firebase connected. Loaded ${data.users.length} user(s) and ${data.states.length} state document(s).`);
+  } catch (error) {
+    console.warn(`Firebase load failed; continuing with in-memory data: ${error.message}`);
+  }
+}
+
+async function persistSolarisUser(user) {
+  if (!user) return;
+  try {
+    await saveSolarisUser(user);
+  } catch (error) {
+    addEvent(`Firebase user save failed: ${error.message}`);
+  }
+}
+
+async function persistSolarisState(user) {
+  if (!user) return;
+  try {
+    await saveSolarisUserState(user.id, getStateForUser(user));
+  } catch (error) {
+    addEvent(`Firebase state save failed: ${error.message}`);
+  }
 }
 
 function getSessionUser(req) {
