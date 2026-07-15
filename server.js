@@ -1660,16 +1660,26 @@ async function buildPaymentLink({ method, invoiceNumber, amount }) {
   if (!method || !invoiceNumber || !Number.isFinite(amount) || amount <= 0) {
     return { error: "Payment method, invoice number, and amount are required." };
   }
-  const paymentUrl = process.env.PAYMENT_URL || "";
+  const amountText = amount.toFixed(2);
+  const cardPaymentUrl = process.env.CARD_PAYMENT_URL || "";
+  const netBankingPaymentUrl = process.env.NETBANKING_PAYMENT_URL || "";
+  const paymentUrl =
+    method === "Card"
+      ? cardPaymentUrl || process.env.PAYMENT_URL || ""
+      : method === "Net Banking"
+        ? netBankingPaymentUrl || process.env.PAYMENT_URL || ""
+        : process.env.PAYMENT_URL || "";
   const upiId = process.env.UPI_ID || "";
   const upiName = process.env.UPI_NAME || "Solaris";
   if (method === "UPI" && upiId) {
     const params = new URLSearchParams({
       pa: upiId,
       pn: upiName,
-      am: String(amount),
+      am: amountText,
       cu: "INR",
-      tn: invoiceNumber,
+      tr: invoiceNumber,
+      tid: invoiceNumber,
+      tn: `Solaris bill ${invoiceNumber}`,
     });
     const paymentUrl = `upi://pay?${params.toString()}`;
     return {
@@ -1682,13 +1692,19 @@ async function buildPaymentLink({ method, invoiceNumber, amount }) {
   }
   if (paymentUrl) {
     const separator = paymentUrl.includes("?") ? "&" : "?";
-    const gatewayUrl = `${paymentUrl}${separator}invoice=${encodeURIComponent(invoiceNumber)}&amount=${encodeURIComponent(amount)}&method=${encodeURIComponent(method)}`;
+    const gatewayUrl = `${paymentUrl}${separator}invoice=${encodeURIComponent(invoiceNumber)}&amount=${encodeURIComponent(amountText)}&currency=INR&method=${encodeURIComponent(method)}`;
     return {
       configured: true,
       provider: method,
       paymentUrl: gatewayUrl,
       qrDataUrl: await QRCode.toDataURL(gatewayUrl, { margin: 1, width: 220 }),
-      message: "Payment gateway link generated. Payment confirmation must come from the gateway/webhook.",
+      message: `${method} payment link generated. Payment confirmation must come from the gateway/webhook.`,
+    };
+  }
+  if (method === "Card") {
+    return {
+      configured: false,
+      error: "Card payment gateway is not configured. Set CARD_PAYMENT_URL or PAYMENT_URL in the hosting environment.",
     };
   }
   return {

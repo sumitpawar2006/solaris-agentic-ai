@@ -354,6 +354,34 @@
                   <button data-payment-method="Card" type="button">Card</button>
                   <button data-payment-method="Net Banking" type="button">Net Banking</button>
                 </div>
+                <div class="card-payment-form" id="card-payment-form" hidden>
+                  <div class="card-payment-head">
+                    <div>
+                      <span class="label">Secure card checkout</span>
+                      <strong>Enter card details</strong>
+                    </div>
+                    <span id="card-payable-amount">Rs 0</span>
+                  </div>
+                  <label class="field">
+                    <span>Cardholder Name</span>
+                    <input id="card-holder-name" type="text" autocomplete="cc-name" placeholder="Name on card" />
+                  </label>
+                  <label class="field">
+                    <span>Card Number</span>
+                    <input id="card-number" type="text" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" maxlength="19" />
+                  </label>
+                  <div class="card-payment-row">
+                    <label class="field">
+                      <span>Expiry</span>
+                      <input id="card-expiry" type="text" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" maxlength="5" />
+                    </label>
+                    <label class="field">
+                      <span>CVV</span>
+                      <input id="card-cvv" type="password" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4" />
+                    </label>
+                  </div>
+                  <p class="note">Card details are not stored by Solaris. Configure a PCI-compliant PAYMENT_URL or CARD_PAYMENT_URL for real processing.</p>
+                </div>
                 <button class="primary full" id="pay-bill" type="button" disabled>Pay Bill</button>
                 <p class="note" id="payment-note">Select a payment option. Solaris opens the configured payment link and waits for real confirmation.</p>
                 <div class="payment-qr-card" id="payment-qr-card" hidden>

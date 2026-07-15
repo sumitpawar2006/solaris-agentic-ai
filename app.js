@@ -240,6 +240,9 @@ function bindControls() {
   $$("[data-payment-method]").forEach((button) => {
     button.addEventListener("click", () => selectPaymentMethod(button.dataset.paymentMethod));
   });
+  ["card-holder-name", "card-number", "card-expiry", "card-cvv"].forEach((id) => {
+    $(`#${id}`)?.addEventListener("input", handleCardInput);
+  });
   $("#pay-bill")?.addEventListener("click", payGeneratedBill);
 }
 
@@ -1512,14 +1515,17 @@ function renderGeneratedBill() {
     button.classList.toggle("active", button.dataset.paymentMethod === solaris.selectedPaymentMethod);
   });
   $("#pay-bill").disabled = !solaris.selectedPaymentMethod || solaris.billPaid;
-  $("#pay-bill").textContent = solaris.paymentUrl ? "Open Payment Link" : "Generate QR";
+  $("#pay-bill").textContent = paymentButtonLabel();
   $("#payment-note").textContent = solaris.billPaid
     ? `Payment was confirmed externally using ${solaris.selectedPaymentMethod}.`
     : solaris.selectedPaymentMethod
       ? solaris.paymentUrl
         ? `${solaris.selectedPaymentMethod} QR is ready. Scan the QR or open the payment link. Solaris will not mark paid until payment confirmation is received.`
-        : `${solaris.selectedPaymentMethod} selected. Solaris is preparing the payment QR.`
+        : solaris.selectedPaymentMethod === "Card"
+          ? "Card selected. Enter card details, then continue to the secure payment gateway."
+          : `${solaris.selectedPaymentMethod} selected. Solaris is preparing the payment QR.`
       : "Select a payment option to continue.";
+  renderCardPaymentForm();
   renderPaymentQr();
 }
 
@@ -1529,7 +1535,7 @@ async function selectPaymentMethod(method) {
   solaris.paymentQrDataUrl = "";
   solaris.paymentUrl = "";
   renderGeneratedBill();
-  await createPaymentQr();
+  if (method !== "Card") await createPaymentQr();
 }
 
 async function payGeneratedBill() {
@@ -1537,6 +1543,7 @@ async function payGeneratedBill() {
     window.open(solaris.paymentUrl, "_blank", "noopener");
     return;
   }
+  if (solaris.selectedPaymentMethod === "Card" && !validateCardForm()) return;
   await createPaymentQr();
 }
 
@@ -1578,6 +1585,63 @@ function renderPaymentQr() {
   if (!hasQr) return;
   $("#payment-qr-image").src = solaris.paymentQrDataUrl;
   $("#payment-link").href = solaris.paymentUrl;
+}
+
+function paymentButtonLabel() {
+  if (!solaris.selectedPaymentMethod) return "Pay Bill";
+  if (solaris.paymentUrl) return "Open Payment Link";
+  if (solaris.selectedPaymentMethod === "Card") return "Continue to Secure Payment";
+  return "Generate QR";
+}
+
+function renderCardPaymentForm() {
+  const form = $("#card-payment-form");
+  if (!form) return;
+  const isCard = solaris.generatedBill && solaris.selectedPaymentMethod === "Card";
+  form.hidden = !isCard;
+  if (isCard) $("#card-payable-amount").textContent = `Rs ${solaris.generatedBill.projectedPayable}`;
+}
+
+function handleCardInput(event) {
+  if (event.target.id === "card-number") {
+    event.target.value = event.target.value.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+  }
+  if (event.target.id === "card-expiry") {
+    const digits = event.target.value.replace(/\D/g, "").slice(0, 4);
+    event.target.value = digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
+  }
+  if (event.target.id === "card-cvv") {
+    event.target.value = event.target.value.replace(/\D/g, "").slice(0, 4);
+  }
+}
+
+function validateCardForm() {
+  const holder = $("#card-holder-name").value.trim();
+  const number = $("#card-number").value.replace(/\D/g, "");
+  const expiry = $("#card-expiry").value.trim();
+  const cvv = $("#card-cvv").value.replace(/\D/g, "");
+  const note = $("#payment-note");
+  if (!holder) {
+    note.textContent = "Enter the cardholder name.";
+    $("#card-holder-name").focus();
+    return false;
+  }
+  if (number.length < 13 || number.length > 16) {
+    note.textContent = "Enter a valid card number.";
+    $("#card-number").focus();
+    return false;
+  }
+  if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) {
+    note.textContent = "Enter expiry in MM/YY format.";
+    $("#card-expiry").focus();
+    return false;
+  }
+  if (cvv.length < 3) {
+    note.textContent = "Enter a valid CVV.";
+    $("#card-cvv").focus();
+    return false;
+  }
+  return true;
 }
 
 function formatDisplayDate(value) {

@@ -44,6 +44,8 @@ Set one of these in the hosting environment:
 
 ```text
 PAYMENT_URL=https://your-payment-gateway-or-payment-link.example/pay
+CARD_PAYMENT_URL=https://your-card-gateway-checkout.example/pay
+NETBANKING_PAYMENT_URL=https://your-netbanking-gateway.example/pay
 ```
 
 Or for UPI deep links:
@@ -54,3 +56,5 @@ UPI_NAME=Solaris
 ```
 
 Solaris opens the configured payment link, but it does not mark the bill paid unless a real payment confirmation integration/webhook is added.
+
+For UPI QR, Solaris includes the invoice reference and amount in INR, for example `am=1916.00`, so apps such as PhonePe can show the payable bill amount when the QR is scanned.

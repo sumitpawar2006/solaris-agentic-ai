@@ -2342,6 +2342,41 @@ body.modal-open {
   font-weight: 900;
 }
 
+.card-payment-form {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fbfcfd;
+}
+
+.card-payment-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.card-payment-head strong,
+.card-payment-head span:last-child {
+  display: block;
+  font-weight: 900;
+}
+
+.card-payment-head span:last-child {
+  color: var(--green);
+}
+
+.card-payment-form .field {
+  margin-bottom: 10px;
+}
+
+.card-payment-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .appliance-form .field {
   margin: 0;
 }
@@ -2673,6 +2708,10 @@ body.modal-open {
   .appliance-impact {
     align-items: flex-start;
     display: grid;
+  }
+
+  .card-payment-row {
+    grid-template-columns: 1fr;
   }
 
   .appliance-impact small {
