@@ -43,7 +43,16 @@
 
         <form class="login-panel auth-panel active" id="login-form">
           <h2>Sign In</h2>
-          <p>Use your Solaris account to continue.</p>
+          <p>Secure access powered by Firebase Authentication.</p>
+          <button class="auth-provider-button" id="google-signin" type="button">
+            <span class="google-mark" aria-hidden="true">G</span>
+            Continue with Google
+          </button>
+          <button class="auth-provider-button" id="phone-signin" type="button">
+            <span class="phone-mark" aria-hidden="true">#</span>
+            Continue with mobile number
+          </button>
+          <div class="auth-divider"><span>or use email</span></div>
           <label class="field">
             <span>Email</span>
             <input id="login-email" type="email" autocomplete="email" placeholder="customer@example.com" required />
@@ -87,6 +96,54 @@
           <button class="primary full" type="submit">Create Account</button>
           <button class="link-button" id="switch-to-login" type="button">Already registered? Sign in</button>
           <small class="login-error" id="signup-error"></small>
+        </form>
+
+        <form class="login-panel auth-panel" id="phone-form">
+          <h2>Mobile Sign In</h2>
+          <p>Firebase will send a real SMS verification code to this number.</p>
+          <label class="field">
+            <span>Mobile number with country code</span>
+            <input id="auth-phone" type="tel" autocomplete="tel" placeholder="+91 98765 43210" required />
+          </label>
+          <div id="firebase-recaptcha"></div>
+          <button class="primary full" id="send-phone-otp" type="submit">Send OTP</button>
+          <div id="phone-otp-fields" hidden>
+            <label class="field">
+              <span>6-digit OTP</span>
+              <input id="auth-phone-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" />
+            </label>
+            <button class="primary full" id="verify-phone-otp" type="button">Verify and Sign In</button>
+          </div>
+          <button class="link-button" id="phone-back-login" type="button">Back to sign in</button>
+          <small class="login-error" id="phone-error"></small>
+        </form>
+
+        <form class="login-panel auth-panel" id="profile-form">
+          <h2>Complete Customer Profile</h2>
+          <p>This information securely connects your verified identity to your solar installation.</p>
+          <label class="field">
+            <span>Customer ID</span>
+            <input id="profile-customer-id" type="text" autocomplete="off" placeholder="CUS-10045" required />
+          </label>
+          <label class="field">
+            <span>Name</span>
+            <input id="profile-name" type="text" autocomplete="name" required />
+          </label>
+          <label class="field" id="profile-email-field">
+            <span>Email</span>
+            <input id="profile-email" type="email" autocomplete="email" required />
+          </label>
+          <label class="field" id="profile-phone-field">
+            <span>Phone Number</span>
+            <input id="profile-phone" type="tel" autocomplete="tel" required />
+          </label>
+          <label class="field">
+            <span>Installation Address</span>
+            <textarea id="profile-address" autocomplete="street-address" required></textarea>
+          </label>
+          <button class="primary full" type="submit">Save Profile and Continue</button>
+          <button class="link-button" id="profile-cancel" type="button">Cancel sign in</button>
+          <small class="login-error" id="profile-error"></small>
         </form>
       </div>
     </section>
@@ -614,6 +671,8 @@
       </article>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth-compat.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

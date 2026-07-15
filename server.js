@@ -7,7 +7,14 @@ const QRCode = require("qrcode");
 const { isEmailConfigured, sendSolarisEmail } = require("./emailAdapter");
 const { isWhatsAppConfigured, normalizeWhatsAppNumber, sendSolarisWhatsApp, sendSolarisWhatsAppContent, sendSolarisWhatsAppTemplate, whatsappProvider } = require("./whatsappAdapter");
 const { isGoogleCalendarConfigured, createSolarisCalendarEvent } = require("./calendarAdapter");
-const { isFirebaseConfigured, loadSolarisFirebaseData, saveSolarisUser, saveSolarisUserState } = require("./firebaseAdapter");
+const {
+  getFirebaseWebConfig,
+  isFirebaseConfigured,
+  loadSolarisFirebaseData,
+  saveSolarisUser,
+  saveSolarisUserState,
+  verifyFirebaseIdToken,
+} = require("./firebaseAdapter");
 
 const port = Number(process.env.PORT || 8787);
 const root = __dirname;
@@ -25,7 +32,6 @@ const demoUser = {
   phone: "+91 98765 43210",
   email: "customer@solaris.local",
   address: "Demo Solar Site",
-  password: "Solaris@123",
 };
 const users = new Map(demoAccountEnabled ? [[demoUser.id, demoUser]] : []);
 const userStates = new Map();
@@ -276,6 +282,52 @@ const server = http.createServer(async (req, res) => {
 
     const url = new URL(req.url, `http://${req.headers.host}`);
 
+    if (url.pathname === "/api/auth/firebase/config" && req.method === "GET") {
+      const config = getFirebaseWebConfig();
+      if (!config) {
+        sendJson(res, { configured: false, error: "Firebase web authentication is not configured." }, 503);
+        return;
+      }
+      sendJson(res, { configured: true, config });
+      return;
+    }
+
+    if (url.pathname === "/api/auth/firebase/session" && req.method === "POST") {
+      const body = await readBody(req);
+      let claims;
+      try {
+        claims = await verifyFirebaseIdToken(body.idToken);
+      } catch (error) {
+        sendJson(res, { error: "Firebase sign-in could not be verified. Please sign in again." }, 401);
+        return;
+      }
+
+      const result = await resolveFirebaseUser(claims, body.profile);
+      if (result.profileRequired) {
+        sendJson(res, {
+          authenticated: false,
+          profileRequired: true,
+          identity: result.identity,
+        }, 428);
+        return;
+      }
+
+      const user = result.user;
+      const token = cryptoRandomToken();
+      sessions.set(token, { userId: user.id, level: "dashboard", firebaseUid: claims.uid, createdAt: Date.now() });
+      res.setHeader("Set-Cookie", cookie("solaris_session", token, {
+        httpOnly: true,
+        sameSite: "Lax",
+        secure: isSecureRequest(req),
+        maxAge: 60 * 60 * 24 * 7,
+      }));
+      stateContext.run(getStateForUser(user), () => addEvent(`Secure Firebase sign-in completed for ${user.customerId}.`));
+      await persistSolarisUser(user);
+      await persistSolarisState(user);
+      sendJson(res, { authenticated: true, user: sanitizeUser(user), newCustomer: result.newCustomer });
+      return;
+    }
+
     if (url.pathname === "/api/auth/status" && req.method === "GET") {
       const session = getSession(req);
       const user = getSessionUser(req);
@@ -289,32 +341,12 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (url.pathname === "/api/auth/login" && req.method === "POST") {
-      const body = await readBody(req);
-      const user = findUserByEmail(body.email);
-      if (!user || body.password !== user.password) {
-        sendJson(res, { error: "Invalid email or password." }, 401);
-        return;
-      }
-
-      const token = cryptoRandomToken();
-      sessions.set(token, { userId: user.id, level: "dashboard", createdAt: Date.now() });
-      res.setHeader("Set-Cookie", cookie("solaris_session", token, { httpOnly: true, sameSite: "Lax", maxAge: 60 * 60 * 8 }));
-      sendJson(res, { authenticated: true, user: sanitizeUser(user) });
+      sendJson(res, { error: "Use Firebase Authentication to sign in." }, 410);
       return;
     }
 
     if (url.pathname === "/api/auth/signup" && req.method === "POST") {
-      const body = await readBody(req);
-      const user = createUser(body);
-      users.set(user.id, user);
-
-      const token = cryptoRandomToken();
-      sessions.set(token, { userId: user.id, level: "dashboard", createdAt: Date.now() });
-      res.setHeader("Set-Cookie", cookie("solaris_session", token, { httpOnly: true, sameSite: "Lax", maxAge: 60 * 60 * 8 }));
-      stateContext.run(getStateForUser(user), () => addEvent(`New customer registered: ${user.customerId}.`));
-      await persistSolarisUser(user);
-      await persistSolarisState(user);
-      sendJson(res, { authenticated: true, user: sanitizeUser(user) }, 201);
+      sendJson(res, { error: "Use Firebase Authentication to create an account." }, 410);
       return;
     }
 
@@ -3515,41 +3547,80 @@ function findUserByIdentifier(identifier) {
   });
 }
 
-function createUser(body) {
-  const customerId = String(body.customerId || "").trim();
-  const name = String(body.name || "").trim();
-  const phone = String(body.phone || "").trim();
-  const email = String(body.email || "").trim().toLowerCase();
-  const address = String(body.address || "").trim();
-  const password = String(body.password || "").trim();
+async function resolveFirebaseUser(claims, profile = null) {
+  const uid = String(claims.uid || "").trim();
+  const email = String(claims.email || profile?.email || "").trim().toLowerCase();
+  const phone = String(claims.phone_number || profile?.phone || "").trim();
+  let user = [...users.values()].find((item) => item.firebaseUid === uid) || null;
 
-  if (!customerId || !name || !phone || !email || !address || !password) {
-    const error = new Error("Customer ID, name, phone, email, address, and password are required.");
+  if (!user && email && claims.email_verified !== false) user = findUserByEmail(email);
+  if (!user && phone) user = findUserByPhone(phone);
+
+  if (user) {
+    if (user.firebaseUid && user.firebaseUid !== uid) {
+      const error = new Error("This Solaris customer is already linked to another sign-in identity.");
+      error.status = 409;
+      throw error;
+    }
+    user.firebaseUid = uid;
+    user.authProvider = claims.firebase?.sign_in_provider || "firebase";
+    if (!user.email && email) user.email = email;
+    if (!user.phone && phone) user.phone = phone;
+    if (!user.name && claims.name) user.name = claims.name;
+    delete user.password;
+    return { user, newCustomer: false };
+  }
+
+  const identity = {
+    name: String(claims.name || "").trim(),
+    email,
+    phone,
+    provider: claims.firebase?.sign_in_provider || "firebase",
+  };
+  if (!profile) return { profileRequired: true, identity };
+
+  const customerId = String(profile.customerId || "").trim().toUpperCase();
+  const name = String(profile.name || identity.name || "").trim();
+  const finalEmail = String(identity.email || profile.email || "").trim().toLowerCase();
+  const finalPhone = String(identity.phone || profile.phone || "").trim();
+  const address = String(profile.address || "").trim();
+
+  if (!customerId || !name || !finalEmail || !finalPhone || !address) {
+    const error = new Error("Customer ID, name, email, phone, and installation address are required.");
     error.status = 400;
     throw error;
   }
-
-  if (findUserByEmail(email)) {
-    const error = new Error("Email is already registered.");
-    error.status = 409;
-    throw error;
-  }
-
   if (findUserByCustomerId(customerId)) {
     const error = new Error("Customer ID is already registered.");
     error.status = 409;
     throw error;
   }
+  const emailOwner = findUserByEmail(finalEmail);
+  if (emailOwner) {
+    const error = new Error("Email is already connected to another Solaris customer.");
+    error.status = 409;
+    throw error;
+  }
+  const phoneOwner = findUserByPhone(finalPhone);
+  if (phoneOwner) {
+    const error = new Error("Phone number is already connected to another Solaris customer.");
+    error.status = 409;
+    throw error;
+  }
 
-  return {
-    id: `user-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+  user = {
+    id: `firebase-${uid}`,
+    firebaseUid: uid,
+    authProvider: identity.provider,
     customerId,
     name,
-    phone,
-    email,
+    phone: finalPhone,
+    email: finalEmail,
     address,
-    password,
+    createdAt: new Date().toISOString(),
   };
+  users.set(user.id, user);
+  return { user, newCustomer: true };
 }
 
 function sanitizeUser(user) {
@@ -3583,6 +3654,11 @@ function cookie(name, value, options = {}) {
   const parts = [`${name}=${encodeURIComponent(value)}`, "Path=/"];
   if (options.httpOnly) parts.push("HttpOnly");
   if (options.sameSite) parts.push(`SameSite=${options.sameSite}`);
+  if (options.secure) parts.push("Secure");
   if (typeof options.maxAge === "number") parts.push(`Max-Age=${options.maxAge}`);
   return parts.join("; ");
+}
+
+function isSecureRequest(req) {
+  return req.socket?.encrypted || String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim() === "https";
 }

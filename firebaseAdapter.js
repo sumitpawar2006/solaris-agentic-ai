@@ -1,6 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { cert, getApps, initializeApp } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
 
 let db = null;
@@ -26,6 +27,36 @@ function getFirebaseDb() {
   }
   db = getFirestore();
   return db;
+}
+
+function getFirebaseAuth() {
+  if (!isFirebaseConfigured()) return null;
+  getFirebaseDb();
+  return getAuth();
+}
+
+function getFirebaseWebConfig() {
+  loadLocalEnv();
+  const credential = getFirebaseCredential();
+  const projectId = process.env.FIREBASE_WEB_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || credential.project_id || credential.projectId;
+  const apiKey = process.env.FIREBASE_WEB_API_KEY;
+  if (!apiKey || !projectId) return null;
+
+  return {
+    apiKey,
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com`,
+    projectId,
+    appId: process.env.FIREBASE_WEB_APP_ID || "",
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "",
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || `${projectId}.appspot.com`,
+  };
+}
+
+async function verifyFirebaseIdToken(idToken) {
+  const auth = getFirebaseAuth();
+  if (!auth) throw new Error("Firebase Authentication is not configured.");
+  if (!idToken) throw new Error("Firebase ID token is required.");
+  return auth.verifyIdToken(idToken, true);
 }
 
 function loadLocalEnv() {
@@ -92,8 +123,10 @@ async function saveSolarisUserState(userId, state) {
 }
 
 module.exports = {
+  getFirebaseWebConfig,
   isFirebaseConfigured,
   loadSolarisFirebaseData,
   saveSolarisUser,
   saveSolarisUserState,
+  verifyFirebaseIdToken,
 };

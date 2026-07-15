@@ -33,6 +33,11 @@ const solaris = {
   chatSessionActive: false,
   refreshTimer: null,
   cleanerFormDirty: false,
+  firebaseAuth: null,
+  firebaseReady: false,
+  phoneConfirmation: null,
+  pendingFirebaseUser: null,
+  recaptchaVerifier: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -45,6 +50,7 @@ async function init() {
   bindFloatingChat();
   bindControls();
   bindAuth();
+  await initializeFirebaseAuthentication();
   await checkAuth();
   startDashboardRefresh();
 }
@@ -251,19 +257,23 @@ function bindAuth() {
   $("#show-login").addEventListener("click", () => showAuthPanel("login"));
   $("#switch-to-signup").addEventListener("click", () => showAuthPanel("signup"));
   $("#switch-to-login").addEventListener("click", () => showAuthPanel("login"));
+  $("#phone-signin").addEventListener("click", () => showAuthPanel("phone"));
+  $("#phone-back-login").addEventListener("click", () => showAuthPanel("login"));
+  $("#profile-cancel").addEventListener("click", cancelFirebaseSignIn);
+  $("#google-signin").addEventListener("click", signInWithGoogle);
 
   $("#login-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     $("#login-error").textContent = "";
     try {
-      const data = await apiPost("/api/auth/login", {
-        email: $("#login-email").value,
-        password: $("#login-password").value,
-      });
-      showApp(data.user);
-      await loadState();
-    } catch {
-      $("#login-error").textContent = "Invalid email or password.";
+      requireFirebaseAuth();
+      const credential = await solaris.firebaseAuth.signInWithEmailAndPassword(
+        $("#login-email").value.trim(),
+        $("#login-password").value,
+      );
+      await completeFirebaseSignIn(credential.user);
+    } catch (error) {
+      $("#login-error").textContent = firebaseAuthMessage(error);
     }
   });
 
@@ -271,23 +281,29 @@ function bindAuth() {
     event.preventDefault();
     $("#signup-error").textContent = "";
     try {
-      const data = await apiPost("/api/auth/signup", {
+      requireFirebaseAuth();
+      const email = $("#signup-email").value.trim();
+      const credential = await solaris.firebaseAuth.createUserWithEmailAndPassword(email, $("#signup-password").value);
+      await credential.user.updateProfile({ displayName: $("#signup-name").value.trim() });
+      await completeFirebaseSignIn(credential.user, {
         customerId: $("#signup-customer-id").value,
         name: $("#signup-name").value,
         phone: $("#signup-phone").value,
-        email: $("#signup-email").value,
+        email,
         address: $("#signup-address").value,
-        password: $("#signup-password").value,
       });
-      showApp(data.user);
-      await loadState();
     } catch (error) {
-      $("#signup-error").textContent = "Unable to create account. Check details or use a different email/customer ID.";
+      $("#signup-error").textContent = firebaseAuthMessage(error);
     }
   });
 
+  $("#phone-form").addEventListener("submit", sendPhoneOtp);
+  $("#verify-phone-otp").addEventListener("click", verifyPhoneOtp);
+  $("#profile-form").addEventListener("submit", saveFirebaseProfile);
+
   $("#logout-button").addEventListener("click", async () => {
     await apiPost("/api/auth/logout");
+    if (solaris.firebaseAuth) await solaris.firebaseAuth.signOut().catch(() => {});
     solaris.events = [];
     solaris.authenticated = false;
     solaris.chatAuthenticated = false;
@@ -301,8 +317,164 @@ function bindAuth() {
 function showAuthPanel(mode) {
   $("#login-form").classList.toggle("active", mode === "login");
   $("#signup-form").classList.toggle("active", mode === "signup");
+  $("#phone-form").classList.toggle("active", mode === "phone");
+  $("#profile-form").classList.toggle("active", mode === "profile");
   $("#login-error").textContent = "";
   $("#signup-error").textContent = "";
+  $("#phone-error").textContent = "";
+  $("#profile-error").textContent = "";
+}
+
+async function initializeFirebaseAuthentication() {
+  try {
+    if (!window.firebase?.initializeApp) throw new Error("Firebase login library could not be loaded.");
+    const response = await apiGet("/api/auth/firebase/config");
+    const app = window.firebase.apps.length ? window.firebase.app() : window.firebase.initializeApp(response.config);
+    solaris.firebaseAuth = app.auth();
+    await solaris.firebaseAuth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL);
+    solaris.firebaseReady = true;
+  } catch (error) {
+    solaris.firebaseReady = false;
+    const message = error.message.includes("503")
+      ? "Firebase web login needs configuration before sign-in can be used."
+      : error.message;
+    $("#login-error").textContent = message;
+  }
+}
+
+function requireFirebaseAuth() {
+  if (!solaris.firebaseReady || !solaris.firebaseAuth) {
+    const error = new Error("Firebase Authentication is not configured yet.");
+    error.code = "auth/not-configured";
+    throw error;
+  }
+}
+
+async function signInWithGoogle() {
+  $("#login-error").textContent = "";
+  try {
+    requireFirebaseAuth();
+    const provider = new window.firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    const credential = await solaris.firebaseAuth.signInWithPopup(provider);
+    await completeFirebaseSignIn(credential.user);
+  } catch (error) {
+    $("#login-error").textContent = firebaseAuthMessage(error);
+  }
+}
+
+async function sendPhoneOtp(event) {
+  event.preventDefault();
+  $("#phone-error").textContent = "";
+  try {
+    requireFirebaseAuth();
+    const phone = $("#auth-phone").value.trim();
+    if (!/^\+[1-9]\d{7,14}$/.test(phone.replace(/[\s()-]/g, ""))) {
+      throw new Error("Enter a valid mobile number with country code, for example +919876543210.");
+    }
+    if (!solaris.recaptchaVerifier) {
+      solaris.recaptchaVerifier = new window.firebase.auth.RecaptchaVerifier("firebase-recaptcha", {
+        size: "normal",
+      });
+      await solaris.recaptchaVerifier.render();
+    }
+    solaris.phoneConfirmation = await solaris.firebaseAuth.signInWithPhoneNumber(phone, solaris.recaptchaVerifier);
+    $("#phone-otp-fields").hidden = false;
+    $("#send-phone-otp").textContent = "Resend OTP";
+    $("#auth-phone-otp").focus();
+  } catch (error) {
+    $("#phone-error").textContent = firebaseAuthMessage(error);
+    resetPhoneRecaptcha();
+  }
+}
+
+async function verifyPhoneOtp() {
+  $("#phone-error").textContent = "";
+  try {
+    if (!solaris.phoneConfirmation) throw new Error("Send an OTP first.");
+    const otp = $("#auth-phone-otp").value.trim();
+    if (!/^\d{6}$/.test(otp)) throw new Error("Enter the 6-digit OTP.");
+    const credential = await solaris.phoneConfirmation.confirm(otp);
+    await completeFirebaseSignIn(credential.user);
+  } catch (error) {
+    $("#phone-error").textContent = firebaseAuthMessage(error);
+  }
+}
+
+async function completeFirebaseSignIn(firebaseUser, profile = null) {
+  const idToken = await firebaseUser.getIdToken(true);
+  const response = await fetch(`${apiBase}/api/auth/firebase/session`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ idToken, profile }),
+  });
+  const payload = await response.json();
+  if (response.status === 428 && payload.profileRequired) {
+    solaris.pendingFirebaseUser = firebaseUser;
+    showFirebaseProfile(payload.identity || {});
+    return;
+  }
+  if (!response.ok) throw new Error(payload.error || "Unable to create the secure Solaris session.");
+  solaris.pendingFirebaseUser = null;
+  showApp(payload.user);
+  await loadState();
+}
+
+function showFirebaseProfile(identity) {
+  $("#profile-name").value = identity.name || "";
+  $("#profile-email").value = identity.email || "";
+  $("#profile-phone").value = identity.phone || "";
+  $("#profile-email").readOnly = Boolean(identity.email);
+  $("#profile-phone").readOnly = Boolean(identity.phone);
+  showAuthPanel("profile");
+}
+
+async function saveFirebaseProfile(event) {
+  event.preventDefault();
+  $("#profile-error").textContent = "";
+  try {
+    if (!solaris.pendingFirebaseUser) throw new Error("Your sign-in session expired. Please sign in again.");
+    await completeFirebaseSignIn(solaris.pendingFirebaseUser, {
+      customerId: $("#profile-customer-id").value,
+      name: $("#profile-name").value,
+      email: $("#profile-email").value,
+      phone: $("#profile-phone").value,
+      address: $("#profile-address").value,
+    });
+  } catch (error) {
+    $("#profile-error").textContent = firebaseAuthMessage(error);
+  }
+}
+
+async function cancelFirebaseSignIn() {
+  solaris.pendingFirebaseUser = null;
+  if (solaris.firebaseAuth) await solaris.firebaseAuth.signOut().catch(() => {});
+  showAuthPanel("login");
+}
+
+function resetPhoneRecaptcha() {
+  if (!solaris.recaptchaVerifier) return;
+  solaris.recaptchaVerifier.clear();
+  solaris.recaptchaVerifier = null;
+  $("#firebase-recaptcha").innerHTML = "";
+}
+
+function firebaseAuthMessage(error) {
+  const code = String(error?.code || "");
+  const messages = {
+    "auth/invalid-credential": "The email or password is incorrect.",
+    "auth/email-already-in-use": "This email already has an account. Sign in instead.",
+    "auth/weak-password": "Use a password with at least 6 characters.",
+    "auth/invalid-email": "Enter a valid email address.",
+    "auth/popup-closed-by-user": "Google sign-in was cancelled.",
+    "auth/popup-blocked": "Allow popups for Solaris, then try Google sign-in again.",
+    "auth/invalid-verification-code": "The mobile OTP is incorrect or expired.",
+    "auth/too-many-requests": "Too many attempts. Wait a few minutes and try again.",
+    "auth/operation-not-allowed": "This sign-in method is not enabled in Firebase Authentication.",
+    "auth/not-configured": "Firebase Authentication is not configured yet.",
+  };
+  return messages[code] || error?.message || "Authentication failed. Please try again.";
 }
 
 async function checkAuth() {

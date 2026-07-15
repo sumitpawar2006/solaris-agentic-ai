@@ -352,6 +352,90 @@ button:hover {
   box-shadow: 0 10px 24px rgba(22, 131, 79, 0.22);
 }
 
+.auth-provider-button {
+  width: 100%;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  background: #ffffff;
+  border-color: #cfd8d2;
+  color: #172019;
+  font-weight: 800;
+}
+
+.auth-provider-button:hover {
+  border-color: var(--green);
+  background: #f6fbf8;
+}
+
+.google-mark,
+.phone-mark {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.google-mark {
+  color: #4285f4;
+  border: 1px solid #d8e2f2;
+}
+
+.phone-mark {
+  color: #ffffff;
+  background: var(--green);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: var(--line);
+}
+
+#firebase-recaptcha {
+  min-height: 0;
+  margin: 4px 0 14px;
+  overflow: hidden;
+}
+
+#phone-otp-fields[hidden] {
+  display: none;
+}
+
+#phone-otp-fields {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+#profile-form {
+  max-height: min(760px, calc(100vh - 44px));
+  overflow-y: auto;
+}
+
+#profile-form input[readonly] {
+  background: #eef3ef;
+  color: var(--muted);
+}
+
 .full {
   width: 100%;
 }
