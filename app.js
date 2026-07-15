@@ -1007,7 +1007,7 @@ function renderJudgeDemoPanel() {
     <article class="hackathon-scenario-card">
       <div class="scenario-hero">
         <div>
-          <span class="scenario-kicker">Hackathon Demo Mode</span>
+          <span class="scenario-kicker">Agentic Operations</span>
           <strong>${escapeHtml(demo.title || "Agentic Solar Incident Scenario")}</strong>
           <p>${escapeHtml(demo.summary || "")}</p>
         </div>
@@ -1501,7 +1501,7 @@ function renderGeneratedBill() {
   $("#bill-invoice-number").textContent = bill.invoiceNumber;
   $("#bill-due-date").textContent = formatDisplayDate(bill.dueDate);
   $("#bill-customer-name").textContent = solaris.currentUser?.name || "Solaris Customer";
-  $("#bill-customer-email").textContent = solaris.currentUser?.email || "customer@solaris.local";
+  $("#bill-customer-email").textContent = solaris.currentUser?.email || "--";
   $("#bill-customer-address").textContent = solaris.currentUser?.address || "Demo Solar Site";
   $("#bill-total-payable").textContent = `Rs ${bill.projectedPayable}`;
   $("#bill-line-items").innerHTML = [
@@ -1986,7 +1986,7 @@ async function sendGuestAgentMessage(message) {
     "I can help with general Solaris information in guest mode. To access your solar data, send your customer ID, registered email, or registered phone number.",
     [
       "Guest mode cannot show production, appliances, tickets, cleaning schedules, or send emails.",
-      "Try: customer@solaris.local",
+      "Try: enter your registered email, phone number, or customer ID.",
       "You can also use Sign In or Sign Up on the landing page.",
     ],
   );

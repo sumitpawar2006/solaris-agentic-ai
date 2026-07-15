@@ -15,11 +15,13 @@ Open:
 http://localhost:8787
 ```
 
-Demo login:
+Create a real customer account from the Sign Up screen. Internal demo login is disabled by default.
 
-```text
-customer@solaris.local
-Solaris@123
+For internal testing only, enable the demo account:
+
+```powershell
+$env:ENABLE_DEMO_ACCOUNT="true"
+npm start
 ```
 
 ## Deploy
@@ -38,7 +40,7 @@ Never commit real Gmail, WhatsApp, Twilio, Meta, Google, or OpenAI secrets.
 
 ## Firebase Firestore Persistence
 
-Solaris can persist customer accounts and dashboard state in Firebase Firestore. If Firebase variables are missing, Solaris falls back to in-memory demo data.
+Solaris can persist customer accounts and dashboard state in Firebase Firestore. If Firebase variables are missing, Solaris falls back to in-memory local data for development.
 
 1. Create a Firebase project.
 2. Enable Firestore Database.

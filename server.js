@@ -17,6 +17,7 @@ const pendingTicketDrafts = new Map();
 const pendingReportRequests = new Map();
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 const openaiModel = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+const demoAccountEnabled = process.env.ENABLE_DEMO_ACCOUNT === "true";
 const demoUser = {
   id: "user-demo",
   customerId: "CUS-DEMO-001",
@@ -26,12 +27,12 @@ const demoUser = {
   address: "Demo Solar Site",
   password: "Solaris@123",
 };
-const users = new Map([[demoUser.id, demoUser]]);
+const users = new Map(demoAccountEnabled ? [[demoUser.id, demoUser]] : []);
 const userStates = new Map();
 const stateContext = new AsyncLocalStorage();
 
-const demoState = createInitialState({ seedDemoTicket: true });
-userStates.set(demoUser.id, demoState);
+const demoState = createInitialState({ seedDemoTicket: demoAccountEnabled });
+if (demoAccountEnabled) userStates.set(demoUser.id, demoState);
 
 const state = new Proxy(
   {},
@@ -1146,7 +1147,11 @@ async function handleWhatsAppInbound(body) {
   const from = normalizeWhatsAppNumber(body.From || body.from || "");
   const ticketIntent = ticketApprovalIntent(message);
   const ticketMatch = ticketIntent ? findPendingTicketApprovalMatch(from, body, message) : null;
-  const inboundUser = ticketMatch?.user || findUserByPhone(from) || demoUser;
+  const inboundUser = ticketMatch?.user || findUserByPhone(from) || (demoAccountEnabled ? demoUser : null);
+  if (!inboundUser) {
+    addEvent(`WhatsApp inbound ignored because no registered customer matched ${from || "unknown sender"}.`);
+    return;
+  }
   stateContext.enterWith(ticketMatch?.customerState || getStateForUser(inboundUser));
   addEvent(`WhatsApp inbound received from ${from || "unknown"}: ${message || "empty message"}.`);
 
@@ -1178,7 +1183,11 @@ async function handleTicketApprovalInbound(message, from, body = {}) {
   if (!hasTicketIntent) return null;
 
   if (!approval.code) approval.code = createShortCode();
-  const user = (approval.userId ? users.get(approval.userId) : null) || findUserByPhone(from) || demoUser;
+  const user = (approval.userId ? users.get(approval.userId) : null) || findUserByPhone(from) || (demoAccountEnabled ? demoUser : null);
+  if (!user) {
+    addEvent(`WhatsApp approval ignored because no registered customer matched ${from || "unknown sender"}.`);
+    return;
+  }
   const trustedButtonReply = Boolean(
     (from && approval.phone && normalizeWhatsAppNumber(approval.phone) === from) ||
       (from && (body.ButtonText || body.ButtonPayload) && body.OriginalRepliedMessageSid)
